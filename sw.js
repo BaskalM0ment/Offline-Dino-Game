@@ -1,4 +1,4 @@
-const CACHE_NAME = "dino-game-v3";
+const CACHE_NAME = "dino-game-v5";
 
 const FILES = [
     "./",
@@ -32,7 +32,6 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
 
     event.respondWith(
-
         fetch(event.request)
             .then(response => {
 
@@ -49,12 +48,8 @@ self.addEventListener("fetch", event => {
 
                 return response;
             })
-            .catch(() => {
-                return caches.match(
-                    event.request
-                );
-            })
-
+            .catch(() =>
+                caches.match(event.request)
+            )
     );
-
 });
