@@ -4,12 +4,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#ffffff">
-
 <title>Dino Game</title>
 
 <style>
-
 * {
     box-sizing: border-box;
 }
@@ -25,7 +22,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #ffffff;
+    background: white;
     font-family: Arial, sans-serif;
 }
 
@@ -33,24 +30,17 @@ body {
     padding: 18px 38px;
     border: 2px solid #222;
     border-radius: 8px;
-    background: #fff;
+    background: white;
     color: #222;
     font-size: 18px;
-    font-weight: 700;
+    font-weight: bold;
     cursor: pointer;
-    transition: 0.15s;
 }
 
 #startButton:hover {
     background: #222;
-    color: #fff;
-    transform: scale(1.03);
+    color: white;
 }
-
-#startButton:active {
-    transform: scale(0.98);
-}
-
 </style>
 </head>
 
@@ -60,15 +50,14 @@ body {
     START IN ABOUT:BLANK
 </button>
 
-
 <script>
 
 "use strict";
 
 
-/* ================================
+/* =========================================
    OFFLINE SUPPORT
-================================ */
+========================================= */
 
 if ("serviceWorker" in navigator) {
 
@@ -77,10 +66,7 @@ if ("serviceWorker" in navigator) {
         navigator.serviceWorker
             .register("./sw.js")
             .catch(error => {
-                console.error(
-                    "Service worker failed:",
-                    error
-                );
+                console.error(error);
             });
 
     });
@@ -88,15 +74,13 @@ if ("serviceWorker" in navigator) {
 }
 
 
-/* ================================
-   LAUNCHER
-================================ */
+/* =========================================
+   LAUNCH GAME
+========================================= */
 
-const button =
-    document.getElementById("startButton");
-
-
-button.addEventListener("click", () => {
+document
+.getElementById("startButton")
+.addEventListener("click", () => {
 
     const gameWindow =
         window.open(
@@ -104,11 +88,10 @@ button.addEventListener("click", () => {
             "_blank"
         );
 
-
     if (!gameWindow) {
 
         alert(
-            "Popup blocked. Allow popups for this site and try again."
+            "Popup blocked. Allow popups for this site."
         );
 
         return;
@@ -119,23 +102,23 @@ button.addEventListener("click", () => {
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
 
 <head>
 
 <meta charset="UTF-8">
 
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+content="width=device-width, initial-scale=1.0">
 
 <title>Dino</title>
 
 
 <style>
 
-/* =================================
-   GENERAL
-================================= */
+/* =========================================
+   BASE
+========================================= */
 
 * {
     box-sizing: border-box;
@@ -143,66 +126,75 @@ button.addEventListener("click", () => {
 
 html,
 body {
+
     width: 100%;
     height: 100%;
+
     margin: 0;
+
 }
 
 body {
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     overflow: hidden;
 
-    background: #ffffff;
+    background: white;
 
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+    font-family: Arial, sans-serif;
+
 }
 
 
-/* =================================
-   GAME
-================================= */
+/* =========================================
+   GAME AREA
+========================================= */
 
 #game {
 
     position: relative;
 
     width: 900px;
-    max-width: 95vw;
+
+    max-width: 96vw;
 
     height: 300px;
 
     overflow: hidden;
 
-    background: #ffffff;
+    background: white;
 
     border-bottom:
         3px solid #222;
+
 }
 
 
-/* =================================
+/* =========================================
    SCORE
-================================= */
+========================================= */
 
 #score {
 
     position: absolute;
 
     top: 15px;
-    right: 20px;
 
-    color: #333;
+    right: 20px;
 
     font-family: monospace;
 
     font-size: 18px;
 
-    z-index: 20;
+    color: #333;
+
+    z-index: 100;
+
 }
 
 
@@ -211,25 +203,23 @@ body {
     position: absolute;
 
     top: 15px;
-    left: 20px;
 
-    color: #333;
+    left: 20px;
 
     font-family: monospace;
 
     font-size: 18px;
 
-    z-index: 20;
+    color: #333;
+
+    z-index: 100;
+
 }
 
 
-/* =================================
-   DINO CONTAINER
-
-   IMPORTANT:
-   The container is now exactly
-   the size of the visible dino.
-================================= */
+/* =========================================
+   DINO
+========================================= */
 
 #dino {
 
@@ -239,164 +229,265 @@ body {
 
     bottom: 0;
 
-    width: 52px;
-    height: 58px;
+    width: 62px;
 
-    z-index: 10;
+    height: 72px;
+
+    z-index: 20;
+
 }
 
 
-/* =================================
-   DINO TAIL
-================================= */
+/*
+   Tail
+*/
 
-.dino-tail {
+.dino-tail-1 {
+
+    position: absolute;
+
+    left: 2px;
+
+    bottom: 30px;
+
+    width: 22px;
+
+    height: 9px;
+
+    background: #222;
+
+    transform:
+        rotate(-15deg);
+
+}
+
+
+.dino-tail-2 {
 
     position: absolute;
 
     left: 0;
 
-    bottom: 22px;
+    bottom: 35px;
 
-    width: 20px;
-    height: 10px;
+    width: 13px;
+
+    height: 8px;
 
     background: #222;
 
     transform:
-        rotate(-20deg);
+        rotate(-35deg);
 
-    transform-origin:
-        right center;
 }
 
 
-/* =================================
-   DINO BODY
-================================= */
+/*
+   Main body
+*/
 
 .dino-body {
 
     position: absolute;
 
-    left: 14px;
+    left: 17px;
 
-    bottom: 10px;
+    bottom: 12px;
 
-    width: 34px;
-    height: 35px;
+    width: 38px;
+
+    height: 42px;
 
     background: #222;
 
     border-radius:
-        4px 7px 2px 2px;
+        5px 8px 3px 3px;
+
 }
 
 
-/* =================================
-   DINO HEAD
-================================= */
+/*
+   Back
+*/
+
+.dino-back {
+
+    position: absolute;
+
+    left: 20px;
+
+    top: 20px;
+
+    width: 28px;
+
+    height: 14px;
+
+    background: #222;
+
+}
+
+
+/*
+   Head
+*/
 
 .dino-head {
 
     position: absolute;
 
-    left: 25px;
+    left: 31px;
 
-    top: 0;
+    top: 3px;
 
-    width: 27px;
-    height: 29px;
+    width: 31px;
+
+    height: 31px;
 
     background: #222;
 
     border-radius:
-        4px 7px 2px 2px;
+        5px 7px 3px 2px;
+
 }
 
 
-/* DINO SNOUT */
+/*
+   Snout
+*/
 
 .dino-snout {
 
     position: absolute;
 
-    left: 43px;
+    left: 51px;
 
-    top: 15px;
+    top: 19px;
 
     width: 13px;
-    height: 10px;
+
+    height: 11px;
 
     background: #222;
 
     border-radius:
         0 3px 3px 0;
+
 }
 
 
-/* DINO EYE */
+/*
+   Eye
+*/
 
 .dino-eye {
 
     position: absolute;
 
-    left: 42px;
+    left: 51px;
 
-    top: 7px;
+    top: 10px;
 
-    width: 4px;
-    height: 4px;
+    width: 5px;
 
-    background: #fff;
+    height: 5px;
+
+    background: white;
+
 }
 
 
-/* DINO MOUTH */
+/*
+   Mouth
+*/
 
 .dino-mouth {
 
     position: absolute;
 
-    left: 45px;
+    left: 54px;
 
-    top: 22px;
+    top: 26px;
 
     width: 9px;
+
     height: 2px;
 
-    background: #fff;
+    background: white;
+
 }
 
 
-/* =================================
-   DINO ARM
-================================= */
+/*
+   Neck
+*/
+
+.dino-neck {
+
+    position: absolute;
+
+    left: 28px;
+
+    top: 28px;
+
+    width: 18px;
+
+    height: 18px;
+
+    background: #222;
+
+}
+
+
+/*
+   Arm
+*/
 
 .dino-arm {
 
     position: absolute;
 
-    left: 18px;
+    left: 24px;
 
-    bottom: 20px;
+    top: 43px;
 
-    width: 17px;
-    height: 6px;
+    width: 18px;
+
+    height: 7px;
 
     background: #222;
 
     transform:
         rotate(18deg);
 
-    transform-origin:
-        right center;
+    border-radius: 2px;
+
 }
 
 
-/* =================================
-   DINO LEGS
-================================= */
+/*
+   Arm hand
+*/
+
+.dino-hand {
+
+    position: absolute;
+
+    left: 18px;
+
+    top: 48px;
+
+    width: 10px;
+
+    height: 6px;
+
+    background: #222;
+
+}
+
+
+/*
+   Legs
+*/
 
 .dino-leg {
 
@@ -404,31 +495,103 @@ body {
 
     bottom: 0;
 
-    width: 8px;
-    height: 17px;
+    width: 9px;
+
+    height: 21px;
 
     background: #222;
 
-    border-radius:
-        0 0 2px 2px;
 }
 
 
-.dino-leg-1 {
+.dino-leg-left {
 
-    left: 20px;
+    left: 22px;
+
 }
 
 
-.dino-leg-2 {
+.dino-leg-right {
+
+    left: 41px;
+
+}
+
+
+/*
+   Feet
+*/
+
+.dino-foot {
+
+    position: absolute;
+
+    bottom: 0;
+
+    width: 14px;
+
+    height: 5px;
+
+    background: #222;
+
+}
+
+
+.dino-foot-left {
+
+    left: 17px;
+
+}
+
+
+.dino-foot-right {
 
     left: 37px;
+
 }
 
 
-/* =================================
+/*
+   Dinosaur spikes
+*/
+
+.dino-spike {
+
+    position: absolute;
+
+    width: 8px;
+
+    height: 8px;
+
+    background: #222;
+
+    transform:
+        rotate(45deg);
+
+}
+
+
+.dino-spike-1 {
+
+    left: 21px;
+
+    top: 22px;
+
+}
+
+
+.dino-spike-2 {
+
+    left: 18px;
+
+    top: 31px;
+
+}
+
+
+/* =========================================
    CACTUS
-================================= */
+========================================= */
 
 .cactus {
 
@@ -436,111 +599,153 @@ body {
 
     bottom: 0;
 
-    width: 42px;
-    height: 62px;
+    width: 52px;
 
-    z-index: 5;
+    height: 70px;
+
+    z-index: 10;
+
 }
 
 
-/* MAIN STEM */
+/*
+   Main stem
+*/
 
-.cactus-stem {
+.cactus-main {
 
     position: absolute;
 
-    left: 14px;
+    left: 18px;
+
     bottom: 0;
 
     width: 17px;
-    height: 62px;
+
+    height: 70px;
 
     background: #222;
 
     border-radius:
-        3px 3px 1px 1px;
+        4px 4px 1px 1px;
+
 }
 
 
-/* LEFT ARM */
+/*
+   Left arm
+*/
 
-.cactus-left {
+.cactus-left-arm {
 
     position: absolute;
 
-    left: 0;
-    bottom: 23px;
+    left: 2px;
 
-    width: 18px;
-    height: 8px;
+    bottom: 25px;
+
+    width: 21px;
+
+    height: 9px;
 
     background: #222;
 
     border-radius:
         4px 0 0 4px;
+
 }
 
 
-.cactus-left::before {
-
-    content: "";
+.cactus-left-up {
 
     position: absolute;
 
-    left: 0;
-    bottom: 0;
+    left: 2px;
 
-    width: 8px;
-    height: 20px;
+    bottom: 25px;
+
+    width: 9px;
+
+    height: 25px;
 
     background: #222;
 
     border-radius:
         5px 5px 0 0;
+
 }
 
 
-/* RIGHT ARM */
+/*
+   Right arm
+*/
 
-.cactus-right {
+.cactus-right-arm {
 
     position: absolute;
 
     right: 0;
-    bottom: 35px;
 
-    width: 18px;
-    height: 8px;
+    bottom: 39px;
+
+    width: 21px;
+
+    height: 9px;
 
     background: #222;
 
     border-radius:
         0 4px 4px 0;
+
 }
 
 
-.cactus-right::before {
-
-    content: "";
+.cactus-right-up {
 
     position: absolute;
 
     right: 0;
-    bottom: 0;
 
-    width: 8px;
-    height: 18px;
+    bottom: 39px;
+
+    width: 9px;
+
+    height: 24px;
 
     background: #222;
 
     border-radius:
         5px 5px 0 0;
+
 }
 
 
-/* =================================
+/*
+   Cactus highlights
+*/
+
+.cactus-line {
+
+    position: absolute;
+
+    width: 3px;
+
+    height: 48px;
+
+    left: 23px;
+
+    bottom: 7px;
+
+    background: white;
+
+    opacity: 0.18;
+
+}
+
+
+/* =========================================
    SMALL CACTUS
-================================= */
+========================================= */
 
 .small-cactus {
 
@@ -548,72 +753,119 @@ body {
 
     bottom: 0;
 
-    width: 28px;
-    height: 42px;
+    width: 35px;
 
-    z-index: 5;
+    height: 48px;
+
+    z-index: 10;
+
 }
 
 
-.small-cactus-stem {
+.small-main {
 
     position: absolute;
 
-    left: 8px;
+    left: 11px;
+
     bottom: 0;
 
-    width: 12px;
-    height: 42px;
+    width: 13px;
+
+    height: 48px;
 
     background: #222;
 
     border-radius:
-        3px 3px 1px 1px;
+        4px 4px 1px 1px;
+
 }
 
 
-.small-cactus-arm-left {
+.small-left {
 
     position: absolute;
 
     left: 0;
-    bottom: 17px;
 
-    width: 10px;
-    height: 6px;
+    bottom: 18px;
+
+    width: 14px;
+
+    height: 7px;
 
     background: #222;
+
 }
 
 
-.small-cactus-arm-right {
+.small-left-up {
+
+    position: absolute;
+
+    left: 0;
+
+    bottom: 18px;
+
+    width: 7px;
+
+    height: 15px;
+
+    background: #222;
+
+}
+
+
+.small-right {
 
     position: absolute;
 
     right: 0;
-    bottom: 25px;
 
-    width: 9px;
-    height: 6px;
+    bottom: 27px;
+
+    width: 13px;
+
+    height: 7px;
 
     background: #222;
+
 }
 
 
-/* =================================
-   CLOUDS
-================================= */
+.small-right-up {
+
+    position: absolute;
+
+    right: 0;
+
+    bottom: 27px;
+
+    width: 7px;
+
+    height: 15px;
+
+    background: #222;
+
+}
+
+
+/* =========================================
+   CLOUD
+========================================= */
 
 .cloud {
 
     position: absolute;
 
-    width: 60px;
-    height: 15px;
+    width: 65px;
+
+    height: 16px;
 
     background: #eee;
 
     border-radius: 20px;
+
 }
 
 
@@ -624,14 +876,17 @@ body {
     position: absolute;
 
     left: 10px;
+
     bottom: 0;
 
-    width: 26px;
-    height: 26px;
+    width: 28px;
+
+    height: 28px;
 
     background: #eee;
 
     border-radius: 50%;
+
 }
 
 
@@ -642,28 +897,29 @@ body {
     position: absolute;
 
     right: 8px;
+
     bottom: 0;
 
-    width: 21px;
-    height: 21px;
+    width: 22px;
+
+    height: 22px;
 
     background: #eee;
 
     border-radius: 50%;
+
 }
 
 
-/* =================================
+/* =========================================
    GAME OVER
-================================= */
+========================================= */
 
 #gameOver {
 
     position: absolute;
 
     inset: 0;
-
-    z-index: 50;
 
     display: none;
 
@@ -675,29 +931,29 @@ body {
 
     background:
         rgba(255,255,255,0.94);
+
+    z-index: 200;
+
 }
 
 
 #gameOver h1 {
 
-    margin:
-        0 0 8px;
+    margin: 0;
 
     font-size: 32px;
+
 }
 
 
 #gameOver p {
 
-    margin: 5px 0;
-
     color: #555;
+
 }
 
 
 #restart {
-
-    margin-top: 15px;
 
     padding:
         10px 24px;
@@ -705,13 +961,12 @@ body {
     border:
         2px solid #222;
 
-    background: #fff;
-
-    color: #222;
+    background: white;
 
     font-size: 16px;
 
     cursor: pointer;
+
 }
 
 
@@ -719,13 +974,10 @@ body {
 
     background: #222;
 
-    color: #fff;
+    color: white;
+
 }
 
-
-/* =================================
-   HINT
-================================= */
 
 #hint {
 
@@ -736,6 +988,7 @@ body {
     color: #777;
 
     font-size: 14px;
+
 }
 
 </style>
@@ -749,65 +1002,95 @@ body {
 <div id="game">
 
 
-    <div id="highScore">
-        HI 00000
-    </div>
+<div id="highScore">
+HI 00000
+</div>
 
 
-    <div id="score">
-        00000
-    </div>
+<div id="score">
+00000
+</div>
 
 
-    <!-- DINO -->
+<!-- =====================================
+     DINO
+===================================== -->
 
-    <div id="dino">
-
-        <div class="dino-tail"></div>
-
-        <div class="dino-body"></div>
-
-        <div class="dino-head"></div>
-
-        <div class="dino-snout"></div>
-
-        <div class="dino-eye"></div>
-
-        <div class="dino-mouth"></div>
-
-        <div class="dino-arm"></div>
-
-        <div class="dino-leg dino-leg-1"></div>
-
-        <div class="dino-leg dino-leg-2"></div>
-
-    </div>
+<div id="dino">
 
 
-    <!-- GAME OVER -->
+<div class="dino-tail-1"></div>
 
-    <div id="gameOver">
+<div class="dino-tail-2"></div>
 
-        <h1>
-            GAME OVER
-        </h1>
 
-        <p>
-            Press SPACE or tap to restart
-        </p>
+<div class="dino-body"></div>
 
-        <button id="restart">
-            RESTART
-        </button>
+<div class="dino-back"></div>
 
-    </div>
+
+<div class="dino-head"></div>
+
+<div class="dino-snout"></div>
+
+
+<div class="dino-eye"></div>
+
+<div class="dino-mouth"></div>
+
+
+<div class="dino-neck"></div>
+
+
+<div class="dino-arm"></div>
+
+<div class="dino-hand"></div>
+
+
+<div class="dino-spike dino-spike-1"></div>
+
+<div class="dino-spike dino-spike-2"></div>
+
+
+<div class="dino-leg dino-leg-left"></div>
+
+<div class="dino-leg dino-leg-right"></div>
+
+
+<div class="dino-foot dino-foot-left"></div>
+
+<div class="dino-foot dino-foot-right"></div>
+
+
+</div>
+
+
+<!-- =====================================
+     GAME OVER
+===================================== -->
+
+<div id="gameOver">
+
+<h1>
+GAME OVER
+</h1>
+
+<p>
+Press SPACE or tap to restart
+</p>
+
+<button id="restart">
+RESTART
+</button>
+
+</div>
 
 
 </div>
 
 
 <div id="hint">
-    SPACE / ↑ / TAP TO JUMP
+SPACE / ↑ / TAP TO JUMP
 </div>
 
 
@@ -816,37 +1099,61 @@ body {
 "use strict";
 
 
+/* =========================================
+   ELEMENTS
+========================================= */
+
 const game =
-    document.getElementById("game");
+    document.getElementById(
+        "game"
+    );
 
 
 const dino =
-    document.getElementById("dino");
+    document.getElementById(
+        "dino"
+    );
 
 
 const scoreElement =
-    document.getElementById("score");
+    document.getElementById(
+        "score"
+    );
 
 
 const highScoreElement =
-    document.getElementById("highScore");
+    document.getElementById(
+        "highScore"
+    );
 
 
 const gameOverScreen =
-    document.getElementById("gameOver");
+    document.getElementById(
+        "gameOver"
+    );
 
 
 const restartButton =
-    document.getElementById("restart");
+    document.getElementById(
+        "restart"
+    );
 
 
-let jumping = false;
-
-let gameOver = false;
+/* =========================================
+   VARIABLES
+========================================= */
 
 let score = 0;
 
 let speed = 6;
+
+let gameOver = false;
+
+let jumping = false;
+
+let jumpVelocity = 0;
+
+let dinoY = 0;
 
 let cactusTimer = null;
 
@@ -854,6 +1161,24 @@ let scoreTimer = null;
 
 let cloudTimer = null;
 
+let nextCactusTime = 0;
+
+
+const GRAVITY = 0.72;
+
+/*
+   Higher number = higher jump.
+
+   190px is significantly higher
+   than the previous version.
+*/
+
+const JUMP_FORCE = 16;
+
+
+/* =========================================
+   HIGH SCORE
+========================================= */
 
 let highScore =
     Number(
@@ -865,15 +1190,13 @@ let highScore =
 
 highScoreElement.textContent =
     "HI " +
-    String(highScore).padStart(
-        5,
-        "0"
-    );
+    String(highScore)
+        .padStart(5, "0");
 
 
-/* =================================
+/* =========================================
    JUMP
-================================= */
+========================================= */
 
 function jump() {
 
@@ -887,59 +1210,52 @@ function jump() {
 
     jumping = true;
 
-
-    let height = 0;
-
-    let goingUp = true;
-
-
-    const jumpInterval =
-        setInterval(() => {
-
-
-            if (goingUp) {
-
-                height += 7;
-
-
-                if (
-                    height >= 130
-                ) {
-
-                    goingUp = false;
-                }
-
-            } else {
-
-                height -= 7;
-
-
-                if (
-                    height <= 0
-                ) {
-
-                    height = 0;
-
-                    jumping = false;
-
-                    clearInterval(
-                        jumpInterval
-                    );
-                }
-            }
-
-
-            dino.style.bottom =
-                height + "px";
-
-
-        }, 20);
+    jumpVelocity =
+        JUMP_FORCE;
 }
 
 
-/* =================================
+/* =========================================
+   PHYSICS
+========================================= */
+
+function updateDino() {
+
+    if (!jumping) {
+        return;
+    }
+
+
+    dinoY +=
+        jumpVelocity;
+
+
+    jumpVelocity -=
+        GRAVITY;
+
+
+    /*
+       Return to ground.
+    */
+
+    if (dinoY <= 0) {
+
+        dinoY = 0;
+
+        jumpVelocity = 0;
+
+        jumping = false;
+    }
+
+
+    dino.style.bottom =
+        dinoY + "px";
+}
+
+
+/* =========================================
    CREATE CACTUS
-================================= */
+========================================= */
 
 function createCactus() {
 
@@ -948,14 +1264,14 @@ function createCactus() {
     }
 
 
+    const isSmall =
+        Math.random() < 0.28;
+
+
     const cactus =
         document.createElement(
             "div"
         );
-
-
-    const isSmall =
-        Math.random() < 0.3;
 
 
     if (isSmall) {
@@ -966,13 +1282,17 @@ function createCactus() {
 
         cactus.innerHTML = `
 
-            <div class="small-cactus-stem"></div>
+<div class="small-main"></div>
 
-            <div class="small-cactus-arm-left"></div>
+<div class="small-left"></div>
 
-            <div class="small-cactus-arm-right"></div>
+<div class="small-left-up"></div>
 
-        `;
+<div class="small-right"></div>
+
+<div class="small-right-up"></div>
+
+`;
 
     } else {
 
@@ -982,20 +1302,38 @@ function createCactus() {
 
         cactus.innerHTML = `
 
-            <div class="cactus-stem"></div>
+<div class="cactus-main"></div>
 
-            <div class="cactus-left"></div>
+<div class="cactus-left-arm"></div>
 
-            <div class="cactus-right"></div>
+<div class="cactus-left-up"></div>
 
-        `;
+<div class="cactus-right-arm"></div>
+
+<div class="cactus-right-up"></div>
+
+<div class="cactus-line"></div>
+
+`;
     }
 
 
-    game.appendChild(cactus);
+    game.appendChild(
+        cactus
+    );
 
 
-    let position = -60;
+    let x =
+        game.offsetWidth + 50;
+
+
+    /*
+       Random cactus spacing.
+    */
+
+    const distance =
+        280 +
+        Math.random() * 300;
 
 
     const move =
@@ -1012,26 +1350,16 @@ function createCactus() {
             }
 
 
-            position += speed;
+            x -= speed;
 
 
-            cactus.style.right =
-                position + "px";
+            cactus.style.left =
+                x + "px";
 
 
-            /*
-                CUSTOM COLLISION BOXES
-
-                The old version checked the
-                entire dino element.
-
-                This version only checks the
-                actual body area.
-
-                This fixes the invisible
-                hitbox above the Dino.
-            */
-
+            /* =================================
+               ACCURATE HITBOXES
+            ================================= */
 
             const dinoRect =
                 dino.getBoundingClientRect();
@@ -1041,32 +1369,42 @@ function createCactus() {
                 cactus.getBoundingClientRect();
 
 
+            /*
+               Only the solid middle
+               of the Dino counts.
+
+               This prevents the tail,
+               transparent area, and
+               other decorative parts
+               from creating unfair hits.
+            */
+
             const dinoHitbox = {
 
                 left:
-                    dinoRect.left + 15,
+                    dinoRect.left + 22,
 
                 right:
-                    dinoRect.right - 2,
+                    dinoRect.right - 3,
 
                 top:
-                    dinoRect.top + 3,
+                    dinoRect.top + 7,
 
                 bottom:
-                    dinoRect.bottom - 1
+                    dinoRect.bottom - 2
             };
 
 
             const cactusHitbox = {
 
                 left:
-                    cactusRect.left + 5,
+                    cactusRect.left + 7,
 
                 right:
-                    cactusRect.right - 5,
+                    cactusRect.right - 7,
 
                 top:
-                    cactusRect.top + 4,
+                    cactusRect.top + 3,
 
                 bottom:
                     cactusRect.bottom
@@ -1098,24 +1436,66 @@ function createCactus() {
             }
 
 
+            /*
+               Remove cactus.
+            */
+
             if (
-                position >
-                game.offsetWidth + 100
+                x <
+                -100
             ) {
 
                 cactus.remove();
 
                 clearInterval(move);
+
+                return;
             }
 
 
-        }, 20);
+        }, 16);
+
+
+    /*
+       Store the timer so
+       restart can clear it.
+    */
+
+    cactus._moveTimer =
+        move;
 }
 
 
-/* =================================
-   CLOUDS
-================================= */
+/* =========================================
+   CACTUS SPAWNER
+========================================= */
+
+function cactusSpawner() {
+
+    if (gameOver) {
+        return;
+    }
+
+
+    createCactus();
+
+
+    const delay =
+        900 +
+        Math.random() * 1000;
+
+
+    cactusTimer =
+        setTimeout(
+            cactusSpawner,
+            delay
+        );
+}
+
+
+/* =========================================
+   CLOUD
+========================================= */
 
 function createCloud() {
 
@@ -1135,50 +1515,56 @@ function createCloud() {
 
 
     cloud.style.top =
-        Math.floor(
-            Math.random() * 100 + 30
+        (
+            35 +
+            Math.random() * 85
         ) + "px";
 
 
-    cloud.style.right =
-        "-80px";
+    cloud.style.left =
+        game.offsetWidth + "px";
 
 
-    game.appendChild(cloud);
+    game.appendChild(
+        cloud
+    );
 
 
-    let position = -80;
+    let x =
+        game.offsetWidth;
 
 
     const move =
         setInterval(() => {
 
 
-            position += 2;
+            x -= 1.5;
 
 
-            cloud.style.right =
-                position + "px";
+            cloud.style.left =
+                x + "px";
 
 
             if (
-                position >
-                game.offsetWidth + 100
+                x <
+                -100
             ) {
 
                 cloud.remove();
 
-                clearInterval(move);
+                clearInterval(
+                    move
+                );
             }
 
 
-        }, 30);
+        }, 16);
 }
 
 
-/* =================================
+/* =========================================
    SCORE
-================================= */
+========================================= */
 
 function updateScore() {
 
@@ -1191,10 +1577,11 @@ function updateScore() {
 
 
     scoreElement.textContent =
-        String(score).padStart(
-            5,
-            "0"
-        );
+        String(score)
+            .padStart(
+                5,
+                "0"
+            );
 
 
     if (
@@ -1208,7 +1595,7 @@ function updateScore() {
 
         localStorage.setItem(
             "dinoHighScore",
-            String(highScore)
+            highScore
         );
 
 
@@ -1222,28 +1609,34 @@ function updateScore() {
     }
 
 
+    /*
+       Increase speed gradually.
+    */
+
     if (
         score % 100 === 0
     ) {
 
-        speed += 0.5;
+        speed += 0.4;
     }
 }
 
 
-/* =================================
-   START
-================================= */
+/* =========================================
+   START GAME
+========================================= */
 
 function startGame() {
 
-    clearInterval(
+    clearTimeout(
         cactusTimer
     );
+
 
     clearInterval(
         scoreTimer
     );
+
 
     clearInterval(
         cloudTimer
@@ -1255,8 +1648,9 @@ function startGame() {
             ".cactus, .small-cactus, .cloud"
         )
         .forEach(
-            element =>
-                element.remove()
+            element => {
+                element.remove();
+            }
         );
 
 
@@ -1264,29 +1658,37 @@ function startGame() {
 
     jumping = false;
 
+    dinoY = 0;
+
+    jumpVelocity = 0;
+
     score = 0;
 
     speed = 6;
-
-
-    scoreElement.textContent =
-        "00000";
 
 
     dino.style.bottom =
         "0px";
 
 
+    scoreElement.textContent =
+        "00000";
+
+
     gameOverScreen.style.display =
         "none";
 
 
-    cactusTimer =
-        setInterval(
-            createCactus,
-            1200
-        );
+    /*
+       Start cactus spawning.
+    */
 
+    cactusSpawner();
+
+
+    /*
+       Score.
+    */
 
     scoreTimer =
         setInterval(
@@ -1294,6 +1696,10 @@ function startGame() {
             100
         );
 
+
+    /*
+       Clouds.
+    */
 
     cloudTimer =
         setInterval(
@@ -1303,35 +1709,61 @@ function startGame() {
 }
 
 
-/* =================================
+/* =========================================
+   GAME LOOP
+========================================= */
+
+function gameLoop() {
+
+    updateDino();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+}
+
+
+/* =========================================
    GAME OVER
-================================= */
+========================================= */
 
 function endGame() {
+
+    if (gameOver) {
+        return;
+    }
+
 
     gameOver = true;
 
 
-    clearInterval(
+    clearTimeout(
         cactusTimer
     );
+
 
     clearInterval(
         scoreTimer
     );
+
 
     clearInterval(
         cloudTimer
     );
 
 
+    /*
+       Remove obstacles.
+    */
+
     document
         .querySelectorAll(
             ".cactus, .small-cactus"
         )
         .forEach(
-            cactus =>
-                cactus.remove()
+            cactus => {
+                cactus.remove();
+            }
         );
 
 
@@ -1340,9 +1772,9 @@ function endGame() {
 }
 
 
-/* =================================
+/* =========================================
    RESTART
-================================= */
+========================================= */
 
 function restartGame() {
 
@@ -1350,9 +1782,9 @@ function restartGame() {
 }
 
 
-/* =================================
+/* =========================================
    KEYBOARD
-================================= */
+========================================= */
 
 document.addEventListener(
     "keydown",
@@ -1360,8 +1792,11 @@ document.addEventListener(
 
 
         if (
-            event.code === "Space" ||
-            event.code === "ArrowUp"
+            event.code ===
+                "Space" ||
+
+            event.code ===
+                "ArrowUp"
         ) {
 
             event.preventDefault();
@@ -1381,9 +1816,9 @@ document.addEventListener(
 );
 
 
-/* =================================
-   TOUCH / MOUSE
-================================= */
+/* =========================================
+   MOUSE / TOUCH
+========================================= */
 
 game.addEventListener(
     "pointerdown",
@@ -1394,7 +1829,6 @@ game.addEventListener(
             event.target ===
             restartButton
         ) {
-
             return;
         }
 
@@ -1412,6 +1846,10 @@ game.addEventListener(
 );
 
 
+/* =========================================
+   RESTART BUTTON
+========================================= */
+
 restartButton.addEventListener(
     "click",
     event => {
@@ -1423,17 +1861,20 @@ restartButton.addEventListener(
 );
 
 
-/* =================================
-   START GAME
-================================= */
+/* =========================================
+   START
+========================================= */
 
 startGame();
+
+gameLoop();
 
 <\/script>
 
 </body>
 
 </html>
+
 `;
 
 
@@ -1455,14 +1896,26 @@ startGame();
 </html>
 ```
 
-### What changed
+### The jump is now much higher
 
-* **Fixed the invisible hitbox.** The collision box is now smaller than the Dino's transparent container.
-* **Better Dino.** Added a tail, head, snout, eye, mouth, arm, and separate legs.
-* **Two cactus types.** Large and small cactuses spawn randomly.
-* **Better cactus shapes.** They have multiple arms instead of simple rectangles.
-* **More accurate collision.** The collision area is calculated separately for the Dino and cactus.
-* **Still completely offline.** No images, libraries, APIs, or external assets.
-* **Still launches directly into `about:blank`.**
-* **High score is saved locally.**
-* **Difficulty increases as your score increases.**
+The old jump used a fixed animation. This version uses actual jump physics:
+
+```javascript
+const GRAVITY = 0.72;
+const JUMP_FORCE = 16;
+```
+
+The Dino can now reach roughly **178 pixels above the ground**, instead of the old 130px limit.
+
+The important part for the collision issue is also changed. The game now uses a smaller custom collision box:
+
+```javascript
+const dinoHitbox = {
+    left: dinoRect.left + 22,
+    right: dinoRect.right - 3,
+    top: dinoRect.top + 7,
+    bottom: dinoRect.bottom - 2
+};
+```
+
+So the decorative tail, head space, and transparent areas don't cause an invisible collision.
