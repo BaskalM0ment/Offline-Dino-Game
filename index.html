@@ -19,7 +19,7 @@ body {
     align-items: center;
     justify-content: center;
     background: white;
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 #launch {
@@ -56,6 +56,21 @@ document.getElementById("launch").onclick = function () {
         alert("Please allow popups for this site.");
         return;
     }
+
+
+    /*
+        High score is stored on the launcher
+        because about:blank cannot reliably
+        use localStorage.
+    */
+
+    let savedHighScore =
+        Number(
+            localStorage.getItem(
+                "dinoHighScore"
+            ) || 0
+        );
+
 
     w.document.open();
 
@@ -107,10 +122,7 @@ body {
 
 #game {
 
-    position: relative;
-
     width: 900px;
-
     height: 300px;
 
 }
@@ -120,7 +132,6 @@ canvas {
     display: block;
 
     width: 900px;
-
     height: 300px;
 
 }
@@ -135,9 +146,7 @@ canvas {
 
 <div id="game">
 
-<canvas
-    id="canvas">
-</canvas>
+<canvas id="canvas"></canvas>
 
 </div>
 
@@ -155,18 +164,9 @@ const ctx =
     canvas.getContext("2d");
 
 
-/*
-   IMPORTANT:
-
-   The canvas is displayed at 900x300,
-   but internally rendered at the screen's
-   pixel density.
-
-   This keeps ALL TEXT sharp.
-*/
-
 const WIDTH = 900;
 const HEIGHT = 300;
+
 
 const dpr =
     Math.max(
@@ -200,21 +200,10 @@ ctx.setTransform(
 
 
 /* =========================================
-   SETTINGS
+   GAME SETTINGS
 ========================================= */
 
 const GROUND = 255;
-
-
-/*
-   Lower jump.
-
-   The previous version allowed
-   the Dino to travel too high.
-
-   This reaches roughly 120px above
-   the ground.
-*/
 
 const JUMP_POWER = 12.5;
 
@@ -244,19 +233,20 @@ let clouds = [];
 
 let score = 0;
 
+
+/*
+    The launcher injects the saved score here.
+*/
+
 let highScore =
-    Number(
-        localStorage.getItem(
-            "dinoHighScore"
-        ) || 0
-    );
+    ${savedHighScore};
 
 
 let speed = 6;
 
-let obstacleTimer = 700;
+let obstacleTimer = 800;
 
-let cloudTimer = 1200;
+let cloudTimer = 1000;
 
 let dead = false;
 
@@ -299,9 +289,7 @@ function drawDino() {
     const c = "#222";
 
 
-    /*
-       Tail
-    */
+    /* Tail */
 
     rect(
         x - 7,
@@ -328,9 +316,7 @@ function drawDino() {
     );
 
 
-    /*
-       Body
-    */
+    /* Body */
 
     rect(
         x + 6,
@@ -341,9 +327,7 @@ function drawDino() {
     );
 
 
-    /*
-       Back spikes
-    */
+    /* Back spikes */
 
     rect(
         x + 8,
@@ -370,9 +354,7 @@ function drawDino() {
     );
 
 
-    /*
-       Neck
-    */
+    /* Neck */
 
     rect(
         x + 35,
@@ -383,9 +365,7 @@ function drawDino() {
     );
 
 
-    /*
-       Head
-    */
+    /* Head */
 
     rect(
         x + 38,
@@ -396,9 +376,7 @@ function drawDino() {
     );
 
 
-    /*
-       Snout
-    */
+    /* Snout */
 
     rect(
         x + 58,
@@ -417,9 +395,7 @@ function drawDino() {
     );
 
 
-    /*
-       Eye
-    */
+    /* Eye */
 
     rect(
         x + 56,
@@ -430,9 +406,7 @@ function drawDino() {
     );
 
 
-    /*
-       Mouth
-    */
+    /* Mouth */
 
     rect(
         x + 62,
@@ -443,9 +417,7 @@ function drawDino() {
     );
 
 
-    /*
-       Arm
-    */
+    /* Arm */
 
     rect(
         x + 25,
@@ -464,9 +436,7 @@ function drawDino() {
     );
 
 
-    /*
-       Legs
-    */
+    /* Legs */
 
     rect(
         x + 12,
@@ -485,9 +455,7 @@ function drawDino() {
     );
 
 
-    /*
-       Feet
-    */
+    /* Feet */
 
     rect(
         x + 7,
@@ -513,19 +481,13 @@ function drawDino() {
 
 function drawLargeCactus(cactus) {
 
-    const x =
-        cactus.x;
+    const x = cactus.x;
 
     const y =
         GROUND - 78;
 
-    const c =
-        "#222";
+    const c = "#222";
 
-
-    /*
-       Main stem
-    */
 
     rect(
         x + 18,
@@ -536,9 +498,7 @@ function drawLargeCactus(cactus) {
     );
 
 
-    /*
-       Left arm
-    */
+    /* Left arm */
 
     rect(
         x + 2,
@@ -557,9 +517,7 @@ function drawLargeCactus(cactus) {
     );
 
 
-    /*
-       Right arm
-    */
+    /* Right arm */
 
     rect(
         x + 34,
@@ -585,14 +543,12 @@ function drawLargeCactus(cactus) {
 
 function drawSmallCactus(cactus) {
 
-    const x =
-        cactus.x;
+    const x = cactus.x;
 
     const y =
         GROUND - 54;
 
-    const c =
-        "#222";
+    const c = "#222";
 
 
     rect(
@@ -604,9 +560,7 @@ function drawSmallCactus(cactus) {
     );
 
 
-    /*
-       Left arm
-    */
+    /* Left arm */
 
     rect(
         x,
@@ -625,9 +579,7 @@ function drawSmallCactus(cactus) {
     );
 
 
-    /*
-       Right arm
-    */
+    /* Right arm */
 
     rect(
         x + 21,
@@ -705,8 +657,7 @@ function createCactus() {
 
     obstacles.push({
 
-        x:
-            WIDTH + 40,
+        x: WIDTH + 40,
 
         width:
             large ? 60 : 38,
@@ -714,8 +665,8 @@ function createCactus() {
         height:
             large ? 78 : 54,
 
-        large:
-            large
+        large: large
+
     });
 }
 
@@ -725,15 +676,6 @@ function createCactus() {
 ========================================= */
 
 function collision(cactus) {
-
-    /*
-       SMALL HITBOX
-
-       The Dino's visible head and tail
-       are outside most of this box.
-
-       This prevents invisible hits.
-    */
 
     const dinoLeft =
         dino.x + 8;
@@ -819,9 +761,7 @@ function update(dt) {
     }
 
 
-    /*
-       Dino physics
-    */
+    /* Dino */
 
     dino.y +=
         dino.velocity *
@@ -851,9 +791,7 @@ function update(dt) {
     }
 
 
-    /*
-       Cactuses
-    */
+    /* Cactuses */
 
     for (
         let i =
@@ -869,8 +807,7 @@ function update(dt) {
 
 
         cactus.x -=
-            speed *
-            dt;
+            speed * dt;
 
 
         if (
@@ -882,6 +819,14 @@ function update(dt) {
             return;
         }
 
+
+        /*
+            THIS IS WHERE SCORE INCREASES.
+
+            A cactus has left the screen,
+            meaning the player successfully
+            passed it.
+        */
 
         if (
             cactus.x <
@@ -897,6 +842,10 @@ function update(dt) {
             score++;
 
 
+            /*
+                Update high score immediately.
+            */
+
             if (
                 score >
                 highScore
@@ -905,12 +854,35 @@ function update(dt) {
                 highScore =
                     score;
 
-                localStorage.setItem(
-                    "dinoHighScore",
-                    highScore
-                );
+
+                /*
+                    Send the new high score
+                    back to the parent launcher.
+                */
+
+                try {
+
+                    window.opener
+                        .localStorage
+                        .setItem(
+                            "dinoHighScore",
+                            String(highScore)
+                        );
+
+                } catch (error) {
+
+                    /*
+                        If opener storage is
+                        unavailable, the score
+                        still works for this game.
+                    */
+                }
             }
 
+
+            /*
+                Increase game speed.
+            */
 
             if (
                 score % 10 === 0
@@ -923,9 +895,7 @@ function update(dt) {
     }
 
 
-    /*
-       Clouds
-    */
+    /* Clouds */
 
     for (
         let i =
@@ -937,8 +907,7 @@ function update(dt) {
     ) {
 
         clouds[i].x -=
-            1.1 *
-            dt;
+            1.1 * dt;
 
 
         if (
@@ -954,9 +923,7 @@ function update(dt) {
     }
 
 
-    /*
-       Spawn cactus
-    */
+    /* Cactus spawn */
 
     obstacleTimer -=
         dt * 16.67;
@@ -976,9 +943,7 @@ function update(dt) {
     }
 
 
-    /*
-       Spawn cloud
-    */
+    /* Cloud spawn */
 
     cloudTimer -=
         dt * 16.67;
@@ -997,6 +962,7 @@ function update(dt) {
                 40 +
                 Math.random() *
                 100
+
         });
 
 
@@ -1022,9 +988,7 @@ function draw() {
     );
 
 
-    /*
-       Background
-    */
+    /* Background */
 
     rect(
         0,
@@ -1035,9 +999,7 @@ function draw() {
     );
 
 
-    /*
-       Clouds
-    */
+    /* Clouds */
 
     for (
         const cloud of clouds
@@ -1049,9 +1011,7 @@ function draw() {
     }
 
 
-    /*
-       Ground
-    */
+    /* Ground */
 
     rect(
         0,
@@ -1062,15 +1022,11 @@ function draw() {
     );
 
 
-    /*
-       Ground marks
-    */
+    /* Ground marks */
 
     for (
         let x = 0;
-
         x < WIDTH;
-
         x += 90
     ) {
 
@@ -1084,9 +1040,7 @@ function draw() {
     }
 
 
-    /*
-       Cactuses
-    */
+    /* Cactuses */
 
     for (
         const cactus of obstacles
@@ -1109,32 +1063,28 @@ function draw() {
     }
 
 
-    /*
-       Dino
-    */
+    /* Dino */
 
     drawDino();
 
 
     /*
-       SCORE
+        SCORE
 
-       These are now rendered
-       with normal anti-aliased
-       canvas text.
+        Always shows current score.
     */
-
-    ctx.font =
-        "18px Arial, Helvetica, sans-serif";
-
-    ctx.fillStyle =
-        "#333";
 
     ctx.textAlign =
         "left";
 
     ctx.textBaseline =
         "alphabetic";
+
+    ctx.font =
+        "18px Arial, Helvetica, sans-serif";
+
+    ctx.fillStyle =
+        "#333";
 
 
     ctx.fillText(
@@ -1145,6 +1095,10 @@ function draw() {
         28
     );
 
+
+    /*
+        Current score.
+    */
 
     ctx.textAlign =
         "right";
@@ -1158,9 +1112,7 @@ function draw() {
     );
 
 
-    /*
-       GAME OVER
-    */
+    /* Game over */
 
     if (dead) {
 
@@ -1268,7 +1220,9 @@ document.addEventListener(
 canvas.addEventListener(
     "pointerdown",
     () => {
+
         jump();
+
     }
 );
 
@@ -1282,6 +1236,7 @@ function loop(time) {
     let dt =
         (time - lastTime) /
         16.67;
+
 
     lastTime =
         time;
@@ -1321,6 +1276,7 @@ requestAnimationFrame(
 `);
 
     w.document.close();
+
     w.focus();
 };
 
