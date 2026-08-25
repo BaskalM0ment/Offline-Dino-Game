@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Dino Game</title>
 
 <style>
-html,
-body {
+html, body {
     width: 100%;
     height: 100%;
     margin: 0;
@@ -18,7 +16,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #ffffff;
+    background: #fff;
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -28,9 +26,8 @@ body {
     border-radius: 8px;
     background: #fff;
     color: #222;
-    font-family: Arial, Helvetica, sans-serif;
     font-size: 18px;
-    font-weight: 700;
+    font-weight: bold;
     cursor: pointer;
 }
 
@@ -43,29 +40,25 @@ body {
 
 <body>
 
-<button id="launch">
-    START IN ABOUT:BLANK
-</button>
+<button id="launch">START IN ABOUT:BLANK</button>
 
 <script>
 
-/* =========================================
-   HIGH SCORE STORAGE
-========================================= */
+/*
+==================================================
+HIGH SCORE
+==================================================
+*/
 
-function getHighScore() {
+const SCORE_KEY = "dinoHighScoreV4";
 
-    const value =
-        Number(
-            localStorage.getItem(
-                "dinoHighScore"
-            )
-        );
+function loadHighScore() {
 
-    if (
-        !Number.isFinite(value) ||
-        value < 0
-    ) {
+    const value = Number(
+        localStorage.getItem(SCORE_KEY)
+    );
+
+    if (!Number.isFinite(value) || value < 0) {
         return 0;
     }
 
@@ -73,95 +66,73 @@ function getHighScore() {
 }
 
 
-/* =========================================
-   RECEIVE HIGH SCORE FROM GAME
-========================================= */
+/*
+==================================================
+RECEIVE SCORE FROM ABOUT:BLANK
+==================================================
+*/
 
-window.addEventListener(
-    "message",
-    function(event) {
+window.addEventListener("message", function(event) {
 
-        if (
-            !event.data ||
-            event.data.type !==
-                "DINO_HIGH_SCORE"
-        ) {
-            return;
-        }
-
-
-        const score =
-            Number(event.data.score);
-
-
-        if (
-            !Number.isFinite(score) ||
-            score < 0
-        ) {
-            return;
-        }
-
-
-        const currentHighScore =
-            getHighScore();
-
-
-        if (
-            score > currentHighScore
-        ) {
-
-            localStorage.setItem(
-                "dinoHighScore",
-                String(
-                    Math.floor(score)
-                )
-            );
-        }
-
+    if (!event.data) {
+        return;
     }
-);
+
+    if (event.data.type !== "DINO_SAVE_SCORE") {
+        return;
+    }
+
+    const newScore = Number(event.data.score);
+
+    if (!Number.isFinite(newScore)) {
+        return;
+    }
+
+    const oldScore = loadHighScore();
+
+    if (newScore > oldScore) {
+
+        localStorage.setItem(
+            SCORE_KEY,
+            String(Math.floor(newScore))
+        );
+    }
+});
 
 
-/* =========================================
-   LAUNCH GAME
-========================================= */
+/*
+==================================================
+LAUNCH
+==================================================
+*/
 
-document
-    .getElementById("launch")
-    .addEventListener(
-        "click",
-        function() {
+document.getElementById("launch").onclick = function() {
 
-            const gameWindow =
-                window.open(
-                    "about:blank",
-                    "_blank"
-                );
+    const gameWindow = window.open(
+        "about:blank",
+        "_blank"
+    );
 
-
-            if (!gameWindow) {
-
-                alert(
-                    "Please allow popups for this site."
-                );
-
-                return;
-            }
+    if (!gameWindow) {
+        alert("Allow popups for this site.");
+        return;
+    }
 
 
-            /*
-                Get the saved high score
-                BEFORE creating the game.
-            */
+    /*
+    IMPORTANT:
 
-            const savedHighScore =
-                getHighScore();
+    We use the NEW V4 key.
+
+    The old "333" value cannot be loaded.
+    */
+
+    const startingHighScore = loadHighScore();
 
 
-            gameWindow.document.open();
+    gameWindow.document.open();
 
-
-            gameWindow.document.write(`
+    gameWindow.document.write(`
 
 <!DOCTYPE html>
 
@@ -171,13 +142,10 @@ document
 
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Dino</title>
-
 
 <style>
 
@@ -193,10 +161,9 @@ body {
 
     overflow: hidden;
 
-    background: #ffffff;
+    background: white;
 
 }
-
 
 body {
 
@@ -213,16 +180,6 @@ body {
 
 }
 
-
-#gameContainer {
-
-    width: 900px;
-
-    height: 300px;
-
-}
-
-
 canvas {
 
     display: block;
@@ -237,97 +194,75 @@ canvas {
 
 </head>
 
-
 <body>
-
-
-<div id="gameContainer">
 
 <canvas id="game"></canvas>
 
-</div>
-
-
 <script>
 
-/* =========================================
-   CANVAS
-========================================= */
+/*
+==================================================
+CANVAS
+==================================================
+*/
 
 const canvas =
-    document.getElementById(
-        "game"
-    );
-
+    document.getElementById("game");
 
 const ctx =
-    canvas.getContext(
-        "2d"
-    );
-
+    canvas.getContext("2d");
 
 const WIDTH = 900;
-
 const HEIGHT = 300;
 
-
-const dpr =
+const DPR =
     Math.max(
         1,
         window.devicePixelRatio || 1
     );
 
-
 canvas.width =
-    WIDTH * dpr;
-
+    WIDTH * DPR;
 
 canvas.height =
-    HEIGHT * dpr;
-
+    HEIGHT * DPR;
 
 canvas.style.width =
     WIDTH + "px";
 
-
 canvas.style.height =
     HEIGHT + "px";
 
-
 ctx.setTransform(
-    dpr,
+    DPR,
     0,
     0,
-    dpr,
+    DPR,
     0,
     0
 );
 
 
-/* =========================================
-   GAME SETTINGS
-========================================= */
+/*
+==================================================
+SETTINGS
+==================================================
+*/
 
 const GROUND = 255;
 
-
-/*
-    Jump height.
-
-    This keeps the Dino inside
-    the game area.
-*/
+const GRAVITY = 0.62;
 
 const JUMP_POWER = 12.5;
 
-const GRAVITY = 0.62;
 
+/*
+==================================================
+PLAYER
+==================================================
+*/
 
-/* =========================================
-   GAME STATE
-========================================= */
-
-let dino = {
+const dino = {
 
     x: 90,
 
@@ -340,40 +275,77 @@ let dino = {
 };
 
 
-let obstacles = [];
+/*
+==================================================
+SCORE
+==================================================
+*/
 
-let clouds = [];
+/*
+    THIS IS NOW THE ONLY HIGH SCORE
+    USED BY THE GAME.
+*/
 
+let highScore = ${startingHighScore};
+
+
+/*
+    CURRENT SCORE ALWAYS STARTS AT ZERO.
+*/
 
 let score = 0;
 
 
 /*
-    HIGH SCORE FROM LAUNCHER
+==================================================
+GAME
+==================================================
 */
 
-let highScore =
-    ${savedHighScore};
+let obstacles = [];
 
+let clouds = [];
 
 let speed = 6;
 
-
 let obstacleTimer = 800;
 
-let cloudTimer = 1200;
-
+let cloudTimer = 1000;
 
 let dead = false;
 
-
-let lastTime =
-    performance.now();
+let lastTime = performance.now();
 
 
-/* =========================================
-   DRAW RECTANGLE
-========================================= */
+/*
+==================================================
+SAVE HIGH SCORE
+==================================================
+*/
+
+function saveHighScore() {
+
+    if (!window.opener) {
+        return;
+    }
+
+    window.opener.postMessage(
+
+        {
+            type: "DINO_SAVE_SCORE",
+            score: highScore
+        },
+
+        "*"
+    );
+}
+
+
+/*
+==================================================
+RECTANGLE
+==================================================
+*/
 
 function rect(
     x,
@@ -383,8 +355,7 @@ function rect(
     color
 ) {
 
-    ctx.fillStyle =
-        color;
+    ctx.fillStyle = color;
 
     ctx.fillRect(
         Math.round(x),
@@ -395,222 +366,108 @@ function rect(
 }
 
 
-/* =========================================
-   DINO
-========================================= */
+/*
+==================================================
+DINO
+==================================================
+*/
 
 function drawDino() {
 
     const x = dino.x;
-
     const y = dino.y;
 
-    const color = "#222";
+    const c = "#222";
 
 
     /* Tail */
 
-    rect(
-        x - 7,
-        y + 38,
-        14,
-        8,
-        color
-    );
+    rect(x - 7, y + 38, 14, 8, c);
 
-    rect(
-        x - 15,
-        y + 31,
-        13,
-        8,
-        color
-    );
+    rect(x - 15, y + 31, 13, 8, c);
 
-    rect(
-        x - 21,
-        y + 25,
-        10,
-        7,
-        color
-    );
+    rect(x - 21, y + 25, 10, 7, c);
 
 
     /* Body */
 
-    rect(
-        x + 6,
-        y + 28,
-        41,
-        37,
-        color
-    );
+    rect(x + 6, y + 28, 41, 37, c);
 
 
     /* Back spikes */
 
-    rect(
-        x + 8,
-        y + 22,
-        8,
-        8,
-        color
-    );
+    rect(x + 8, y + 22, 8, 8, c);
 
-    rect(
-        x + 18,
-        y + 17,
-        8,
-        10,
-        color
-    );
+    rect(x + 18, y + 17, 8, 10, c);
 
-    rect(
-        x + 28,
-        y + 13,
-        8,
-        14,
-        color
-    );
+    rect(x + 28, y + 13, 8, 14, c);
 
 
     /* Neck */
 
-    rect(
-        x + 35,
-        y + 13,
-        19,
-        32,
-        color
-    );
+    rect(x + 35, y + 13, 19, 32, c);
 
 
     /* Head */
 
-    rect(
-        x + 38,
-        y + 3,
-        30,
-        29,
-        color
-    );
+    rect(x + 38, y + 3, 30, 29, c);
 
 
     /* Snout */
 
-    rect(
-        x + 58,
-        y + 16,
-        19,
-        13,
-        color
-    );
+    rect(x + 58, y + 16, 19, 13, c);
 
-    rect(
-        x + 67,
-        y + 21,
-        10,
-        8,
-        color
-    );
+    rect(x + 67, y + 21, 10, 8, c);
 
 
     /* Eye */
 
-    rect(
-        x + 56,
-        y + 8,
-        5,
-        5,
-        "#ffffff"
-    );
+    rect(x + 56, y + 8, 5, 5, "#fff");
 
 
     /* Mouth */
 
-    rect(
-        x + 62,
-        y + 27,
-        12,
-        2,
-        "#ffffff"
-    );
+    rect(x + 62, y + 27, 12, 2, "#fff");
 
 
     /* Arm */
 
-    rect(
-        x + 25,
-        y + 40,
-        18,
-        7,
-        color
-    );
+    rect(x + 25, y + 40, 18, 7, c);
 
-    rect(
-        x + 19,
-        y + 44,
-        10,
-        6,
-        color
-    );
+    rect(x + 19, y + 44, 10, 6, c);
 
 
     /* Legs */
 
-    rect(
-        x + 12,
-        y + 58,
-        10,
-        17,
-        color
-    );
+    rect(x + 12, y + 58, 10, 17, c);
 
-    rect(
-        x + 35,
-        y + 57,
-        10,
-        18,
-        color
-    );
+    rect(x + 35, y + 57, 10, 18, c);
 
 
     /* Feet */
 
-    rect(
-        x + 7,
-        y + 70,
-        18,
-        5,
-        color
-    );
+    rect(x + 7, y + 70, 18, 5, c);
 
-    rect(
-        x + 31,
-        y + 70,
-        19,
-        5,
-        color
-    );
+    rect(x + 31, y + 70, 19, 5, c);
 }
 
 
-/* =========================================
-   LARGE CACTUS
-========================================= */
+/*
+==================================================
+LARGE CACTUS
+==================================================
+*/
 
-function drawLargeCactus(cactus) {
+function drawLargeCactus(c) {
 
-    const x =
-        cactus.x;
+    const x = c.x;
 
-    const y =
-        GROUND - 78;
+    const y = GROUND - 78;
 
-    const color =
-        "#222";
+    const color = "#222";
 
 
-    /* Main stem */
+    /* Main */
 
     rect(
         x + 18,
@@ -621,7 +478,7 @@ function drawLargeCactus(cactus) {
     );
 
 
-    /* Left branch */
+    /* Left arm */
 
     rect(
         x + 2,
@@ -640,7 +497,7 @@ function drawLargeCactus(cactus) {
     );
 
 
-    /* Right branch */
+    /* Right arm */
 
     rect(
         x + 34,
@@ -660,23 +517,22 @@ function drawLargeCactus(cactus) {
 }
 
 
-/* =========================================
-   SMALL CACTUS
-========================================= */
+/*
+==================================================
+SMALL CACTUS
+==================================================
+*/
 
-function drawSmallCactus(cactus) {
+function drawSmallCactus(c) {
 
-    const x =
-        cactus.x;
+    const x = c.x;
 
-    const y =
-        GROUND - 54;
+    const y = GROUND - 54;
 
-    const color =
-        "#222";
+    const color = "#222";
 
 
-    /* Main stem */
+    /* Main */
 
     rect(
         x + 11,
@@ -687,7 +543,7 @@ function drawSmallCactus(cactus) {
     );
 
 
-    /* Left branch */
+    /* Left arm */
 
     rect(
         x,
@@ -706,7 +562,7 @@ function drawSmallCactus(cactus) {
     );
 
 
-    /* Right branch */
+    /* Right arm */
 
     rect(
         x + 21,
@@ -726,52 +582,47 @@ function drawSmallCactus(cactus) {
 }
 
 
-/* =========================================
-   CLOUD
-========================================= */
+/*
+==================================================
+CLOUD
+==================================================
+*/
 
-function drawCloud(cloud) {
+function drawCloud(c) {
 
-    ctx.fillStyle =
-        "#ededed";
-
+    ctx.fillStyle = "#ededed";
 
     ctx.beginPath();
 
-
     ctx.arc(
-        cloud.x + 15,
-        cloud.y + 14,
+        c.x + 15,
+        c.y + 14,
         12,
         0,
         Math.PI * 2
     );
 
-
     ctx.arc(
-        cloud.x + 33,
-        cloud.y + 9,
+        c.x + 33,
+        c.y + 9,
         17,
         0,
         Math.PI * 2
     );
 
-
     ctx.arc(
-        cloud.x + 52,
-        cloud.y + 15,
+        c.x + 52,
+        c.y + 15,
         12,
         0,
         Math.PI * 2
     );
 
-
     ctx.fill();
 
-
     rect(
-        cloud.x + 10,
-        cloud.y + 13,
+        c.x + 10,
+        c.y + 13,
         50,
         15,
         "#ededed"
@@ -779,9 +630,11 @@ function drawCloud(cloud) {
 }
 
 
-/* =========================================
-   CREATE CACTUS
-========================================= */
+/*
+==================================================
+CREATE CACTUS
+==================================================
+*/
 
 function createCactus() {
 
@@ -791,67 +644,49 @@ function createCactus() {
 
     obstacles.push({
 
-        x:
-            WIDTH + 40,
+        x: WIDTH + 40,
 
         width:
-            large
-                ? 60
-                : 38,
+            large ? 60 : 38,
 
         height:
-            large
-                ? 78
-                : 54,
+            large ? 78 : 54,
 
-        large:
-            large
+        large: large
 
     });
 }
 
 
-/* =========================================
-   COLLISION
-========================================= */
+/*
+==================================================
+COLLISION
+==================================================
+*/
 
-function collision(cactus) {
-
-    /*
-        SMALL DINO HITBOX
-    */
+function collision(c) {
 
     const dinoLeft =
         dino.x + 8;
 
-
     const dinoRight =
         dino.x + 50;
 
-
     const dinoTop =
         dino.y + 22;
-
 
     const dinoBottom =
         dino.y + 74;
 
 
     const cactusLeft =
-        cactus.x + 8;
-
+        c.x + 8;
 
     const cactusRight =
-        cactus.x +
-        cactus.width -
-        8;
-
+        c.x + c.width - 8;
 
     const cactusTop =
-        GROUND -
-        cactus.height +
-        6;
-
+        GROUND - c.height + 6;
 
     const cactusBottom =
         GROUND;
@@ -859,25 +694,23 @@ function collision(cactus) {
 
     return (
 
-        dinoLeft <
-        cactusRight &&
+        dinoLeft < cactusRight &&
 
-        dinoRight >
-        cactusLeft &&
+        dinoRight > cactusLeft &&
 
-        dinoTop <
-        cactusBottom &&
+        dinoTop < cactusBottom &&
 
-        dinoBottom >
-        cactusTop
+        dinoBottom > cactusTop
 
     );
 }
 
 
-/* =========================================
-   JUMP
-========================================= */
+/*
+==================================================
+JUMP
+==================================================
+*/
 
 function jump() {
 
@@ -900,37 +733,11 @@ function jump() {
 }
 
 
-/* =========================================
-   SEND HIGH SCORE
-========================================= */
-
-function sendHighScore() {
-
-    if (
-        window.opener
-    ) {
-
-        window.opener.postMessage(
-
-            {
-
-                type:
-                    "DINO_HIGH_SCORE",
-
-                score:
-                    highScore
-
-            },
-
-            "*"
-        );
-    }
-}
-
-
-/* =========================================
-   UPDATE
-========================================= */
+/*
+==================================================
+UPDATE
+==================================================
+*/
 
 function update(dt) {
 
@@ -939,42 +746,37 @@ function update(dt) {
     }
 
 
-    /* Dino physics */
+    /*
+    DINO
+    */
 
     dino.y +=
-        dino.velocity *
-        dt;
-
+        dino.velocity * dt;
 
     dino.velocity +=
-        GRAVITY *
-        dt;
+        GRAVITY * dt;
 
 
     const floor =
         GROUND - 75;
 
 
-    if (
-        dino.y >= floor
-    ) {
+    if (dino.y >= floor) {
 
-        dino.y =
-            floor;
+        dino.y = floor;
 
-        dino.velocity =
-            0;
+        dino.velocity = 0;
 
-        dino.jumping =
-            false;
+        dino.jumping = false;
     }
 
 
-    /* Cactuses */
+    /*
+    CACTUSES
+    */
 
     for (
-        let i =
-            obstacles.length - 1;
+        let i = obstacles.length - 1;
 
         i >= 0;
 
@@ -986,31 +788,29 @@ function update(dt) {
 
 
         cactus.x -=
-            speed *
-            dt;
+            speed * dt;
 
 
-        /* Collision */
+        /*
+        COLLISION
+        */
 
-        if (
-            collision(cactus)
-        ) {
+        if (collision(cactus)) {
 
-            dead =
-                true;
+            dead = true;
 
             return;
         }
 
 
         /*
-            Player passed cactus.
+        PASSED CACTUS
+
+        This is what increases
+        the score.
         */
 
-        if (
-            cactus.x <
-            -100
-        ) {
+        if (cactus.x < -100) {
 
             obstacles.splice(
                 i,
@@ -1022,43 +822,39 @@ function update(dt) {
 
 
             /*
-                UPDATE HIGH SCORE
+            HIGH SCORE
             */
 
-            if (
-                score >
-                highScore
-            ) {
+            if (score > highScore) {
 
                 highScore =
                     score;
 
-
-                sendHighScore();
+                saveHighScore();
             }
 
 
             /*
-                Speed increases
-                every 10 points.
+            SPEED
             */
 
             if (
+                score > 0 &&
                 score % 10 === 0
             ) {
 
-                speed +=
-                    0.2;
+                speed += 0.2;
             }
         }
     }
 
 
-    /* Clouds */
+    /*
+    CLOUDS
+    */
 
     for (
-        let i =
-            clouds.length - 1;
+        let i = clouds.length - 1;
 
         i >= 0;
 
@@ -1066,13 +862,11 @@ function update(dt) {
     ) {
 
         clouds[i].x -=
-            1.1 *
-            dt;
+            1.1 * dt;
 
 
         if (
-            clouds[i].x <
-            -100
+            clouds[i].x < -100
         ) {
 
             clouds.splice(
@@ -1083,62 +877,57 @@ function update(dt) {
     }
 
 
-    /* Cactus spawn */
+    /*
+    CACTUS SPAWN
+    */
 
     obstacleTimer -=
-        dt *
-        16.67;
+        dt * 16.67;
 
 
-    if (
-        obstacleTimer <= 0
-    ) {
+    if (obstacleTimer <= 0) {
 
         createCactus();
 
-
         obstacleTimer =
             1100 +
-            Math.random() *
-            800;
+            Math.random() * 800;
     }
 
 
-    /* Cloud spawn */
+    /*
+    CLOUD SPAWN
+    */
 
     cloudTimer -=
-        dt *
-        16.67;
+        dt * 16.67;
 
 
-    if (
-        cloudTimer <= 0
-    ) {
+    if (cloudTimer <= 0) {
 
         clouds.push({
 
-            x:
-                WIDTH + 50,
+            x: WIDTH + 50,
 
             y:
                 40 +
-                Math.random() *
-                100
+                Math.random() * 100
 
         });
 
 
         cloudTimer =
             2500 +
-            Math.random() *
-            2500;
+            Math.random() * 2500;
     }
 }
 
 
-/* =========================================
-   DRAW
-========================================= */
+/*
+==================================================
+DRAW
+==================================================
+*/
 
 function draw() {
 
@@ -1150,30 +939,34 @@ function draw() {
     );
 
 
-    /* Background */
+    /*
+    BACKGROUND
+    */
 
     rect(
         0,
         0,
         WIDTH,
         HEIGHT,
-        "#ffffff"
+        "#fff"
     );
 
 
-    /* Clouds */
+    /*
+    CLOUDS
+    */
 
     for (
         const cloud of clouds
     ) {
 
-        drawCloud(
-            cloud
-        );
+        drawCloud(cloud);
     }
 
 
-    /* Ground */
+    /*
+    GROUND
+    */
 
     rect(
         0,
@@ -1184,7 +977,9 @@ function draw() {
     );
 
 
-    /* Ground details */
+    /*
+    GROUND MARKS
+    */
 
     for (
         let x = 0;
@@ -1199,42 +994,40 @@ function draw() {
             GROUND + 10,
             18,
             2,
-            "#dddddd"
+            "#ddd"
         );
     }
 
 
-    /* Cactuses */
+    /*
+    CACTUSES
+    */
 
     for (
         const cactus of obstacles
     ) {
 
-        if (
-            cactus.large
-        ) {
+        if (cactus.large) {
 
-            drawLargeCactus(
-                cactus
-            );
+            drawLargeCactus(cactus);
 
         } else {
 
-            drawSmallCactus(
-                cactus
-            );
+            drawSmallCactus(cactus);
         }
     }
 
 
-    /* Dino */
+    /*
+    DINO
+    */
 
     drawDino();
 
 
-    /* =====================================
-       HIGH SCORE
-    ===================================== */
+    /*
+    HIGH SCORE
+    */
 
     ctx.textAlign =
         "left";
@@ -1246,42 +1039,37 @@ function draw() {
         "18px Arial, Helvetica, sans-serif";
 
     ctx.fillStyle =
-        "#333333";
+        "#333";
 
 
     ctx.fillText(
         "HI " +
         String(highScore)
             .padStart(5, "0"),
-
         20,
-
         28
     );
 
 
-    /* =====================================
-       CURRENT SCORE
-    ===================================== */
+    /*
+    CURRENT SCORE
+    */
 
     ctx.textAlign =
         "right";
 
 
     ctx.fillText(
-
         String(score)
             .padStart(5, "0"),
-
         WIDTH - 20,
-
         28
     );
 
 
-    /* =====================================
-       GAME OVER
-    ===================================== */
+    /*
+    GAME OVER
+    */
 
     if (dead) {
 
@@ -1311,9 +1099,7 @@ function draw() {
 
         ctx.fillText(
             "GAME OVER",
-
             WIDTH / 2,
-
             125
         );
 
@@ -1327,21 +1113,19 @@ function draw() {
 
 
         ctx.fillText(
-
             "Press SPACE or tap to restart",
-
             WIDTH / 2,
-
             155
-
         );
     }
 }
 
 
-/* =========================================
-   RESTART
-========================================= */
+/*
+==================================================
+RESTART
+==================================================
+*/
 
 function restart() {
 
@@ -1359,10 +1143,8 @@ function restart() {
     dino.y =
         GROUND - 75;
 
-
     dino.velocity =
         0;
-
 
     dino.jumping =
         false;
@@ -1371,42 +1153,39 @@ function restart() {
     obstacleTimer =
         800;
 
-
     cloudTimer =
         1000;
 }
 
 
-/* =========================================
-   KEYBOARD
-========================================= */
+/*
+==================================================
+KEYBOARD
+==================================================
+*/
 
 document.addEventListener(
     "keydown",
     function(event) {
 
         if (
-
-            event.code ===
-                "Space" ||
-
-            event.code ===
-                "ArrowUp"
-
+            event.code === "Space" ||
+            event.code === "ArrowUp"
         ) {
 
             event.preventDefault();
 
             jump();
         }
-
     }
 );
 
 
-/* =========================================
-   MOUSE / TOUCH
-========================================= */
+/*
+==================================================
+TOUCH / MOUSE
+==================================================
+*/
 
 canvas.addEventListener(
     "pointerdown",
@@ -1418,9 +1197,11 @@ canvas.addEventListener(
 );
 
 
-/* =========================================
-   GAME LOOP
-========================================= */
+/*
+==================================================
+GAME LOOP
+==================================================
+*/
 
 function gameLoop(time) {
 
@@ -1433,10 +1214,7 @@ function gameLoop(time) {
         time;
 
 
-    if (
-        dt > 2
-    ) {
-
+    if (dt > 2) {
         dt = 2;
     }
 
@@ -1452,12 +1230,13 @@ function gameLoop(time) {
 }
 
 
-/* =========================================
-   START
-========================================= */
+/*
+==================================================
+START
+==================================================
+*/
 
 restart();
-
 
 requestAnimationFrame(
     gameLoop
@@ -1471,12 +1250,11 @@ requestAnimationFrame(
 
 `);
 
-            gameWindow.document.close();
+    gameWindow.document.close();
 
-            gameWindow.focus();
+    gameWindow.focus();
 
-        }
-    );
+};
 
 </script>
 
