@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>Dino Game</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        #startButton {
+            padding: 18px 36px;
+            border: 2px solid #222;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #222;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s, color 0.15s;
+        }
+
+        #startButton:hover {
+            background: #222;
+            color: #fff;
+            transform: scale(1.03);
+        }
+
+        #startButton:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body>
+
+<button id="startButton">START IN ABOUT:BLANK</button>
+
+<script>
+"use strict";
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(error => {
+            console.error("Service worker registration failed:", error);
+        });
+    });
+}
+
+const button = document.getElementById("startButton");
+
+button.addEventListener("click", () => {
+
+    const gameWindow = window.open("about:blank", "_blank");
+
+    if (!gameWindow) {
+        alert("Popup blocked. Allow popups for this site and try again.");
+        return;
+    }
+
+    gameWindow.document.open();
+
+    gameWindow.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dino</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+#game {
+    position: relative;
+    width: 900px;
+    max-width: 95vw;
+    height: 300px;
+    overflow: hidden;
+    background: #ffffff;
+    border-bottom: 3px solid #222;
+}
+
+#score {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #333;
+    font-family: monospace;
+    font-size: 18px;
+    z-index: 2;
+}
+
+#highScore {
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    color: #333;
+    font-family: monospace;
+    font-size: 18px;
+    z-index: 2;
+}
+
+/* DINO */
+
+#dino {
+    position: absolute;
+    left: 70px;
+    bottom: 0;
+    width: 45px;
+    height: 50px;
+    z-index: 3;
+}
+
+.dino-head {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 34px;
+    height: 25px;
+    background: #222;
+}
+
+.dino-body {
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+    width: 32px;
+    height: 35px;
+    background: #222;
+}
+
+.dino-eye {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+}
+
+.dino-arm {
+    position: absolute;
+    top: 27px;
+    right: 27px;
+    width: 15px;
+    height: 6px;
+    background: #222;
+    transform: rotate(20deg);
+}
+
+.leg {
+    position: absolute;
+    bottom: 0;
+    width: 7px;
+    height: 15px;
+    background: #222;
+}
+
+.leg1 {
+    right: 18px;
+}
+
+.leg2 {
+    right: 3px;
+}
+
+/* CACTUS */
+
+.cactus {
+    position: absolute;
+    right: -30px;
+    bottom: 0;
+    width: 25px;
+    height: 50px;
+    background: #222;
+}
+
+.cactus::before {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: -12px;
+    width: 12px;
+    height: 7px;
+    background: #222;
+}
+
+.cactus::after {
+    content: "";
+    position: absolute;
+    top: 28px;
+    right: -10px;
+    width: 10px;
+    height: 7px;
+    background: #222;
+}
+
+/* CLOUD */
+
+.cloud {
+    position: absolute;
+    width: 55px;
+    height: 15px;
+    background: #eee;
+    border-radius: 20px;
+}
+
+.cloud::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+    width: 25px;
+    height: 25px;
+    background: #eee;
+    border-radius: 50%;
+}
+
+.cloud::after {
+    content: "";
+    position: absolute;
+    right: 8px;
+    bottom: 0;
+    width: 20px;
+    height: 20px;
+    background: #eee;
+    border-radius: 50%;
+}
+
+/* GAME OVER */
+
+#gameOver {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    background: rgba(255, 255, 255, 0.94);
+}
+
+#gameOver h1 {
+    margin: 0 0 8px;
+    color: #222;
+    font-size: 32px;
+}
+
+#gameOver p {
+    margin: 5px 0;
+    color: #555;
+}
+
+#restart {
+    margin-top: 15px;
+    padding: 10px 24px;
+    border: 2px solid #222;
+    background: #fff;
+    color: #222;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#restart:hover {
+    background: #222;
+    color: #fff;
+}
+
+#hint {
+    position: fixed;
+    bottom: 20px;
+    color: #777;
+    font-size: 14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div id="highScore">HI 00000</div>
+
+    <div id="score">00000</div>
+
+    <div id="dino">
+
+        <div class="dino-head">
+            <div class="dino-eye"></div>
+        </div>
+
+        <div class="dino-body"></div>
+
+        <div class="dino-arm"></div>
+
+        <div class="leg leg1"></div>
+        <div class="leg leg2"></div>
+
+    </div>
+
+    <div id="gameOver">
+
+        <h1>GAME OVER</h1>
+
+        <p>Press SPACE or tap to restart</p>
+
+        <button id="restart">RESTART</button>
+
+    </div>
+
+</div>
+
+<div id="hint">
+    SPACE / ↑ / TAP TO JUMP
+</div>
+
+<script>
+
+"use strict";
+
+const game = document.getElementById("game");
+const dino = document.getElementById("dino");
+const scoreElement = document.getElementById("score");
+const highScoreElement = document.getElementById("highScore");
+const gameOverScreen = document.getElementById("gameOver");
+const restartButton = document.getElementById("restart");
+
+let jumping = false;
+let gameOver = false;
+let score = 0;
+let speed = 6;
+
+let cactusTimer = null;
+let scoreTimer = null;
+let cloudTimer = null;
+
+let highScore = Number(
+    localStorage.getItem("dinoHighScore") || 0
+);
+
+highScoreElement.textContent =
+    "HI " + String(highScore).padStart(5, "0");
+
+
+function jump() {
+
+    if (jumping || gameOver) {
+        return;
+    }
+
+    jumping = true;
+
+    let height = 0;
+    let goingUp = true;
+
+    const jumpInterval = setInterval(() => {
+
+        if (goingUp) {
+
+            height += 7;
+
+            if (height >= 130) {
+                goingUp = false;
+            }
+
+        } else {
+
+            height -= 7;
+
+            if (height <= 0) {
+
+                height = 0;
+                jumping = false;
+
+                clearInterval(jumpInterval);
+            }
+        }
+
+        dino.style.bottom = height + "px";
+
+    }, 20);
+}
+
+
+function createCactus() {
+
+    if (gameOver) {
+        return;
+    }
+
+    const cactus = document.createElement("div");
+
+    cactus.className = "cactus";
+
+    game.appendChild(cactus);
+
+    let position = -30;
+
+    const move = setInterval(() => {
+
+        if (gameOver) {
+
+            clearInterval(move);
+            cactus.remove();
+
+            return;
+        }
+
+        position += speed;
+
+        cactus.style.right = position + "px";
+
+        const dinoRect =
+            dino.getBoundingClientRect();
+
+        const cactusRect =
+            cactus.getBoundingClientRect();
+
+        const collision =
+            dinoRect.left < cactusRect.right - 5 &&
+            dinoRect.right > cactusRect.left + 5 &&
+            dinoRect.bottom > cactusRect.top + 5;
+
+        if (collision) {
+
+            endGame();
+
+            clearInterval(move);
+
+            return;
+        }
+
+        if (position > game.offsetWidth + 50) {
+
+            cactus.remove();
+
+            clearInterval(move);
+        }
+
+    }, 20);
+}
+
+
+function createCloud() {
+
+    if (gameOver) {
+        return;
+    }
+
+    const cloud = document.createElement("div");
+
+    cloud.className = "cloud";
+
+    cloud.style.top =
+        Math.floor(Math.random() * 100 + 30) + "px";
+
+    cloud.style.right = "-70px";
+
+    game.appendChild(cloud);
+
+    let position = -70;
+
+    const move = setInterval(() => {
+
+        position += 2;
+
+        cloud.style.right =
+            position + "px";
+
+        if (position > game.offsetWidth + 100) {
+
+            cloud.remove();
+
+            clearInterval(move);
+        }
+
+    }, 30);
+}
+
+
+function updateScore() {
+
+    if (gameOver) {
+        return;
+    }
+
+    score++;
+
+    scoreElement.textContent =
+        String(score).padStart(5, "0");
+
+    if (score > highScore) {
+
+        highScore = score;
+
+        localStorage.setItem(
+            "dinoHighScore",
+            String(highScore)
+        );
+
+        highScoreElement.textContent =
+            "HI " + String(highScore).padStart(5, "0");
+    }
+
+    if (score % 100 === 0) {
+        speed += 0.5;
+    }
+}
+
+
+function startGame() {
+
+    clearInterval(cactusTimer);
+    clearInterval(scoreTimer);
+    clearInterval(cloudTimer);
+
+    gameOver = false;
+    jumping = false;
+    score = 0;
+    speed = 6;
+
+    scoreElement.textContent = "00000";
+
+    dino.style.bottom = "0px";
+
+    gameOverScreen.style.display = "none";
+
+    cactusTimer = setInterval(() => {
+
+        createCactus();
+
+    }, 1200);
+
+    scoreTimer = setInterval(
+        updateScore,
+        100
+    );
+
+    cloudTimer = setInterval(
+        createCloud,
+        3500
+    );
+}
+
+
+function endGame() {
+
+    gameOver = true;
+
+    clearInterval(cactusTimer);
+    clearInterval(scoreTimer);
+    clearInterval(cloudTimer);
+
+    document
+        .querySelectorAll(".cactus")
+        .forEach(cactus => cactus.remove());
+
+    gameOverScreen.style.display = "flex";
+}
+
+
+function restartGame() {
+    startGame();
+}
+
+
+document.addEventListener("keydown", event => {
+
+    if (
+        event.code === "Space" ||
+        event.code === "ArrowUp"
+    ) {
+
+        event.preventDefault();
+
+        if (gameOver) {
+            restartGame();
+        } else {
+            jump();
+        }
+    }
+});
+
+
+game.addEventListener("pointerdown", event => {
+
+    if (event.target === restartButton) {
+        return;
+    }
+
+    if (gameOver) {
+        restartGame();
+    } else {
+        jump();
+    }
+});
+
+
+restartButton.addEventListener("click", event => {
+
+    event.stopPropagation();
+
+    restartGame();
+});
+
+
+startGame();
+
+</script>
+
+</body>
+</html>
+    `);
+
+    gameWindow.document.close();
+    gameWindow.focus();
+});
+</script>
+
+</body>
+</html>
