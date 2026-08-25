@@ -35,7 +35,7 @@
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.15s, background 0.15s, color 0.15s;
+            transition: 0.15s;
         }
 
         #startButton:hover {
@@ -57,33 +57,56 @@
 <script>
 "use strict";
 
+/*
+    Register offline support.
+*/
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js").catch(error => {
-            console.error("Service worker registration failed:", error);
-        });
+        navigator.serviceWorker.register("./sw.js")
+            .catch(error => {
+                console.error("Service worker failed:", error);
+            });
     });
 }
 
+
 const button = document.getElementById("startButton");
+
 
 button.addEventListener("click", () => {
 
-    const gameWindow = window.open("about:blank", "_blank");
+    /*
+        Open about:blank directly from the button click.
+        This keeps it allowed by the browser popup blocker.
+    */
+    const gameWindow = window.open(
+        "about:blank",
+        "_blank"
+    );
 
     if (!gameWindow) {
-        alert("Popup blocked. Allow popups for this site and try again.");
+        alert(
+            "Popup blocked. Allow popups for this site and try again."
+        );
         return;
     }
 
-    gameWindow.document.open();
 
-    gameWindow.document.write(`
-<!DOCTYPE html>
+    /*
+        The entire game is stored locally in this string.
+        It does not need an internet connection.
+    */
+    const gameHTML = `<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
 <title>Dino</title>
 
 <style>
@@ -138,6 +161,7 @@ body {
     z-index: 2;
 }
 
+
 /* DINO */
 
 #dino {
@@ -173,7 +197,7 @@ body {
     right: 5px;
     width: 4px;
     height: 4px;
-    background: #fff;
+    background: white;
 }
 
 .dino-arm {
@@ -201,6 +225,7 @@ body {
 .leg2 {
     right: 3px;
 }
+
 
 /* CACTUS */
 
@@ -233,6 +258,7 @@ body {
     background: #222;
 }
 
+
 /* CLOUD */
 
 .cloud {
@@ -264,6 +290,7 @@ body {
     background: #eee;
     border-radius: 50%;
 }
+
 
 /* GAME OVER */
 
@@ -314,15 +341,23 @@ body {
 }
 
 </style>
+
 </head>
+
 
 <body>
 
+
 <div id="game">
 
-    <div id="highScore">HI 00000</div>
+    <div id="highScore">
+        HI 00000
+    </div>
 
-    <div id="score">00000</div>
+    <div id="score">
+        00000
+    </div>
+
 
     <div id="dino">
 
@@ -339,48 +374,77 @@ body {
 
     </div>
 
+
     <div id="gameOver">
 
         <h1>GAME OVER</h1>
 
-        <p>Press SPACE or tap to restart</p>
+        <p>
+            Press SPACE or tap to restart
+        </p>
 
-        <button id="restart">RESTART</button>
+        <button id="restart">
+            RESTART
+        </button>
 
     </div>
 
 </div>
 
+
 <div id="hint">
     SPACE / ↑ / TAP TO JUMP
 </div>
+
 
 <script>
 
 "use strict";
 
-const game = document.getElementById("game");
-const dino = document.getElementById("dino");
-const scoreElement = document.getElementById("score");
-const highScoreElement = document.getElementById("highScore");
-const gameOverScreen = document.getElementById("gameOver");
-const restartButton = document.getElementById("restart");
+
+const game =
+    document.getElementById("game");
+
+const dino =
+    document.getElementById("dino");
+
+const scoreElement =
+    document.getElementById("score");
+
+const highScoreElement =
+    document.getElementById("highScore");
+
+const gameOverScreen =
+    document.getElementById("gameOver");
+
+const restartButton =
+    document.getElementById("restart");
+
 
 let jumping = false;
+
 let gameOver = false;
+
 let score = 0;
+
 let speed = 6;
 
 let cactusTimer = null;
+
 let scoreTimer = null;
+
 let cloudTimer = null;
 
-let highScore = Number(
-    localStorage.getItem("dinoHighScore") || 0
-);
+
+let highScore =
+    Number(
+        localStorage.getItem("dinoHighScore") || 0
+    );
+
 
 highScoreElement.textContent =
-    "HI " + String(highScore).padStart(5, "0");
+    "HI " +
+    String(highScore).padStart(5, "0");
 
 
 function jump() {
@@ -392,34 +456,42 @@ function jump() {
     jumping = true;
 
     let height = 0;
+
     let goingUp = true;
 
-    const jumpInterval = setInterval(() => {
 
-        if (goingUp) {
+    const jumpInterval =
+        setInterval(() => {
 
-            height += 7;
+            if (goingUp) {
 
-            if (height >= 130) {
-                goingUp = false;
+                height += 7;
+
+                if (height >= 130) {
+                    goingUp = false;
+                }
+
+            } else {
+
+                height -= 7;
+
+                if (height <= 0) {
+
+                    height = 0;
+
+                    jumping = false;
+
+                    clearInterval(
+                        jumpInterval
+                    );
+                }
             }
 
-        } else {
 
-            height -= 7;
+            dino.style.bottom =
+                height + "px";
 
-            if (height <= 0) {
-
-                height = 0;
-                jumping = false;
-
-                clearInterval(jumpInterval);
-            }
-        }
-
-        dino.style.bottom = height + "px";
-
-    }, 20);
+        }, 20);
 }
 
 
@@ -429,56 +501,81 @@ function createCactus() {
         return;
     }
 
-    const cactus = document.createElement("div");
 
-    cactus.className = "cactus";
+    const cactus =
+        document.createElement("div");
+
+
+    cactus.className =
+        "cactus";
+
 
     game.appendChild(cactus);
 
+
     let position = -30;
 
-    const move = setInterval(() => {
 
-        if (gameOver) {
+    const move =
+        setInterval(() => {
 
-            clearInterval(move);
-            cactus.remove();
+            if (gameOver) {
 
-            return;
-        }
+                clearInterval(move);
 
-        position += speed;
+                cactus.remove();
 
-        cactus.style.right = position + "px";
+                return;
+            }
 
-        const dinoRect =
-            dino.getBoundingClientRect();
 
-        const cactusRect =
-            cactus.getBoundingClientRect();
+            position += speed;
 
-        const collision =
-            dinoRect.left < cactusRect.right - 5 &&
-            dinoRect.right > cactusRect.left + 5 &&
-            dinoRect.bottom > cactusRect.top + 5;
 
-        if (collision) {
+            cactus.style.right =
+                position + "px";
 
-            endGame();
 
-            clearInterval(move);
+            const dinoRect =
+                dino.getBoundingClientRect();
 
-            return;
-        }
 
-        if (position > game.offsetWidth + 50) {
+            const cactusRect =
+                cactus.getBoundingClientRect();
 
-            cactus.remove();
 
-            clearInterval(move);
-        }
+            const collision =
+                dinoRect.left <
+                cactusRect.right - 5 &&
 
-    }, 20);
+                dinoRect.right >
+                cactusRect.left + 5 &&
+
+                dinoRect.bottom >
+                cactusRect.top + 5;
+
+
+            if (collision) {
+
+                endGame();
+
+                clearInterval(move);
+
+                return;
+            }
+
+
+            if (
+                position >
+                game.offsetWidth + 50
+            ) {
+
+                cactus.remove();
+
+                clearInterval(move);
+            }
+
+        }, 20);
 }
 
 
@@ -488,34 +585,52 @@ function createCloud() {
         return;
     }
 
-    const cloud = document.createElement("div");
 
-    cloud.className = "cloud";
+    const cloud =
+        document.createElement("div");
+
+
+    cloud.className =
+        "cloud";
+
 
     cloud.style.top =
-        Math.floor(Math.random() * 100 + 30) + "px";
+        Math.floor(
+            Math.random() * 100 + 30
+        ) + "px";
 
-    cloud.style.right = "-70px";
+
+    cloud.style.right =
+        "-70px";
+
 
     game.appendChild(cloud);
 
+
     let position = -70;
 
-    const move = setInterval(() => {
 
-        position += 2;
+    const move =
+        setInterval(() => {
 
-        cloud.style.right =
-            position + "px";
+            position += 2;
 
-        if (position > game.offsetWidth + 100) {
 
-            cloud.remove();
+            cloud.style.right =
+                position + "px";
 
-            clearInterval(move);
-        }
 
-    }, 30);
+            if (
+                position >
+                game.offsetWidth + 100
+            ) {
+
+                cloud.remove();
+
+                clearInterval(move);
+            }
+
+        }, 30);
 }
 
 
@@ -525,23 +640,30 @@ function updateScore() {
         return;
     }
 
+
     score++;
+
 
     scoreElement.textContent =
         String(score).padStart(5, "0");
 
+
     if (score > highScore) {
 
         highScore = score;
+
 
         localStorage.setItem(
             "dinoHighScore",
             String(highScore)
         );
 
+
         highScoreElement.textContent =
-            "HI " + String(highScore).padStart(5, "0");
+            "HI " +
+            String(highScore).padStart(5, "0");
     }
+
 
     if (score % 100 === 0) {
         speed += 0.5;
@@ -552,35 +674,52 @@ function updateScore() {
 function startGame() {
 
     clearInterval(cactusTimer);
+
     clearInterval(scoreTimer);
+
     clearInterval(cloudTimer);
 
+
     gameOver = false;
+
     jumping = false;
+
     score = 0;
+
     speed = 6;
 
-    scoreElement.textContent = "00000";
 
-    dino.style.bottom = "0px";
+    scoreElement.textContent =
+        "00000";
 
-    gameOverScreen.style.display = "none";
 
-    cactusTimer = setInterval(() => {
+    dino.style.bottom =
+        "0px";
 
-        createCactus();
 
-    }, 1200);
+    gameOverScreen.style.display =
+        "none";
 
-    scoreTimer = setInterval(
-        updateScore,
-        100
-    );
 
-    cloudTimer = setInterval(
-        createCloud,
-        3500
-    );
+    cactusTimer =
+        setInterval(
+            createCactus,
+            1200
+        );
+
+
+    scoreTimer =
+        setInterval(
+            updateScore,
+            100
+        );
+
+
+    cloudTimer =
+        setInterval(
+            createCloud,
+            3500
+        );
 }
 
 
@@ -588,15 +727,23 @@ function endGame() {
 
     gameOver = true;
 
+
     clearInterval(cactusTimer);
+
     clearInterval(scoreTimer);
+
     clearInterval(cloudTimer);
+
 
     document
         .querySelectorAll(".cactus")
-        .forEach(cactus => cactus.remove());
+        .forEach(cactus => {
+            cactus.remove();
+        });
 
-    gameOverScreen.style.display = "flex";
+
+    gameOverScreen.style.display =
+        "flex";
 }
 
 
@@ -605,56 +752,89 @@ function restartGame() {
 }
 
 
-document.addEventListener("keydown", event => {
+document.addEventListener(
+    "keydown",
+    event => {
 
-    if (
-        event.code === "Space" ||
-        event.code === "ArrowUp"
-    ) {
+        if (
+            event.code === "Space" ||
+            event.code === "ArrowUp"
+        ) {
 
-        event.preventDefault();
+            event.preventDefault();
+
+
+            if (gameOver) {
+
+                restartGame();
+
+            } else {
+
+                jump();
+            }
+        }
+    }
+);
+
+
+game.addEventListener(
+    "pointerdown",
+    event => {
+
+        if (
+            event.target ===
+            restartButton
+        ) {
+            return;
+        }
+
 
         if (gameOver) {
+
             restartGame();
+
         } else {
+
             jump();
         }
     }
-});
+);
 
 
-game.addEventListener("pointerdown", event => {
+restartButton.addEventListener(
+    "click",
+    event => {
 
-    if (event.target === restartButton) {
-        return;
-    }
+        event.stopPropagation();
 
-    if (gameOver) {
         restartGame();
-    } else {
-        jump();
     }
-});
-
-
-restartButton.addEventListener("click", event => {
-
-    event.stopPropagation();
-
-    restartGame();
-});
+);
 
 
 startGame();
 
-</script>
+<\/script>
 
 </body>
-</html>
-    `);
+
+</html>`;
+
+
+    /*
+        Write the game into about:blank.
+    */
+
+    gameWindow.document.open();
+
+    gameWindow.document.write(
+        gameHTML
+    );
 
     gameWindow.document.close();
+
     gameWindow.focus();
+
 });
 </script>
 
