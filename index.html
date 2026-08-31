@@ -6,7 +6,8 @@
 <title>Dino Game</title>
 
 <style>
-html, body {
+html,
+body {
     width: 100%;
     height: 100%;
     margin: 0;
@@ -83,26 +84,16 @@ body.dark button:hover {
 
 <script>
 
-/*
-==================================================
-SETTINGS
-==================================================
-*/
-
 const SCORE_KEY = "dinoHighScoreV4";
 const APPEARANCE_KEY = "dinoAppearance";
 
 
-/*
-==================================================
-APPEARANCE
-==================================================
-*/
+/* =========================================
+   APPEARANCE
+========================================= */
 
 let appearance =
-    localStorage.getItem(
-        APPEARANCE_KEY
-    ) || "white";
+    localStorage.getItem(APPEARANCE_KEY) || "white";
 
 
 function updateAppearance() {
@@ -111,18 +102,14 @@ function updateAppearance() {
 
         document.body.classList.add("dark");
 
-        document.getElementById(
-            "appearance"
-        ).textContent =
+        document.getElementById("appearance").textContent =
             "APPEARANCE: BLACK";
 
     } else {
 
         document.body.classList.remove("dark");
 
-        document.getElementById(
-            "appearance"
-        ).textContent =
+        document.getElementById("appearance").textContent =
             "APPEARANCE: WHITE";
     }
 }
@@ -133,169 +120,114 @@ updateAppearance();
 
 document
     .getElementById("appearance")
-    .addEventListener(
-        "click",
-        function() {
+    .addEventListener("click", function() {
 
-            if (appearance === "white") {
+        appearance =
+            appearance === "white"
+                ? "black"
+                : "white";
 
-                appearance = "black";
+        localStorage.setItem(
+            APPEARANCE_KEY,
+            appearance
+        );
 
-            } else {
-
-                appearance = "white";
-            }
-
-
-            localStorage.setItem(
-                APPEARANCE_KEY,
-                appearance
-            );
+        updateAppearance();
+    });
 
 
-            updateAppearance();
-        }
-    );
-
-
-/*
-==================================================
-HIGH SCORE
-==================================================
-*/
+/* =========================================
+   HIGH SCORE
+========================================= */
 
 function getHighScore() {
 
     const value =
         Number(
-            localStorage.getItem(
-                SCORE_KEY
-            )
+            localStorage.getItem(SCORE_KEY)
         );
-
 
     if (
         !Number.isFinite(value) ||
         value < 0
     ) {
-
         return 0;
     }
-
 
     return Math.floor(value);
 }
 
 
-/*
-==================================================
-RECEIVE HIGH SCORE
-==================================================
-*/
+/* =========================================
+   RECEIVE HIGH SCORE
+========================================= */
 
-window.addEventListener(
-    "message",
-    function(event) {
+window.addEventListener("message", function(event) {
 
-        if (
-            !event.data
-        ) {
-
-            return;
-        }
-
-
-        if (
-            event.data.type !==
-            "DINO_SAVE_SCORE"
-        ) {
-
-            return;
-        }
-
-
-        const newScore =
-            Number(
-                event.data.score
-            );
-
-
-        if (
-            !Number.isFinite(newScore) ||
-            newScore < 0
-        ) {
-
-            return;
-        }
-
-
-        const oldScore =
-            getHighScore();
-
-
-        if (
-            newScore > oldScore
-        ) {
-
-            localStorage.setItem(
-                SCORE_KEY,
-                String(
-                    Math.floor(
-                        newScore
-                    )
-                )
-            );
-        }
-
+    if (!event.data) {
+        return;
     }
-);
+
+    if (event.data.type !== "DINO_SAVE_SCORE") {
+        return;
+    }
+
+    const newScore =
+        Number(event.data.score);
+
+    if (
+        !Number.isFinite(newScore) ||
+        newScore < 0
+    ) {
+        return;
+    }
+
+    const oldScore =
+        getHighScore();
+
+    if (newScore > oldScore) {
+
+        localStorage.setItem(
+            SCORE_KEY,
+            String(Math.floor(newScore))
+        );
+    }
+});
 
 
-/*
-==================================================
-LAUNCH GAME
-==================================================
-*/
+/* =========================================
+   LAUNCH GAME
+========================================= */
 
 document
     .getElementById("launch")
-    .addEventListener(
-        "click",
-        function() {
+    .addEventListener("click", function() {
 
-            const gameWindow =
-                window.open(
-                    "about:blank",
-                    "_blank"
-                );
+        const gameWindow =
+            window.open(
+                "about:blank",
+                "_blank"
+            );
 
+        if (!gameWindow) {
 
-            if (!gameWindow) {
+            alert(
+                "Please allow popups for this site."
+            );
 
-                alert(
-                    "Please allow popups for this site."
-                );
+            return;
+        }
 
-                return;
-            }
+        const savedHighScore =
+            getHighScore();
 
-
-            const savedHighScore =
-                getHighScore();
-
-
-            /*
-                Pass appearance into game.
-            */
-
-            const gameAppearance =
-                appearance;
+        const gameAppearance =
+            appearance;
 
 
-            gameWindow.document.open();
+        gameWindow.document.open();
 
-
-            gameWindow.document.write(`
+        gameWindow.document.write(`
 
 <!DOCTYPE html>
 
@@ -312,7 +244,6 @@ document
 
 <title>Dino</title>
 
-
 <style>
 
 html,
@@ -322,20 +253,17 @@ body {
     height: 100%;
 
     margin: 0;
-
     padding: 0;
 
     overflow: hidden;
 
 }
 
-
 body {
 
     display: flex;
 
     justify-content: center;
-
     align-items: center;
 
     font-family:
@@ -345,13 +273,11 @@ body {
 
 }
 
-
 canvas {
 
     display: block;
 
     width: 900px;
-
     height: 300px;
 
 }
@@ -360,35 +286,25 @@ canvas {
 
 </head>
 
-
 <body>
-
 
 <canvas id="game"></canvas>
 
 
 <script>
 
-/*
-==================================================
-CANVAS
-==================================================
-*/
+/* =========================================
+   CANVAS
+========================================= */
 
 const canvas =
-    document.getElementById(
-        "game"
-    );
-
+    document.getElementById("game");
 
 const ctx =
-    canvas.getContext(
-        "2d"
-    );
+    canvas.getContext("2d");
 
 
 const WIDTH = 900;
-
 const HEIGHT = 300;
 
 
@@ -423,11 +339,9 @@ ctx.setTransform(
 );
 
 
-/*
-==================================================
-APPEARANCE
-==================================================
-*/
+/* =========================================
+   APPEARANCE
+========================================= */
 
 const appearance =
     "${gameAppearance}";
@@ -471,11 +385,9 @@ document.body.style.background =
     BACKGROUND;
 
 
-/*
-==================================================
-SETTINGS
-==================================================
-*/
+/* =========================================
+   SETTINGS
+========================================= */
 
 const GROUND = 255;
 
@@ -484,11 +396,9 @@ const GRAVITY = 0.62;
 const JUMP_POWER = 12.5;
 
 
-/*
-==================================================
-PLAYER
-==================================================
-*/
+/* =========================================
+   DINO
+========================================= */
 
 const dino = {
 
@@ -498,16 +408,16 @@ const dino = {
 
     velocity: 0,
 
-    jumping: false
+    jumping: false,
+
+    ducking: false
 
 };
 
 
-/*
-==================================================
-SCORE
-==================================================
-*/
+/* =========================================
+   SCORE
+========================================= */
 
 let score = 0;
 
@@ -515,19 +425,37 @@ let highScore =
     ${savedHighScore};
 
 
-/*
-==================================================
-GAME STATE
-==================================================
-*/
+/* =========================================
+   GAME STATE
+========================================= */
 
 let obstacles = [];
 
+let flyingDinosaurs = [];
+
 let clouds = [];
+
 
 let speed = 6;
 
+
+/*
+    Cactus timer.
+*/
+
 let obstacleTimer = 800;
+
+
+/*
+    Flying dinosaur timer.
+
+    Much longer than the cactus timer.
+*/
+
+let flyingTimer =
+    5000 +
+    Math.random() * 3500;
+
 
 let cloudTimer = 1000;
 
@@ -537,32 +465,21 @@ let lastTime =
     performance.now();
 
 
-/*
-==================================================
-SAVE HIGH SCORE
-==================================================
-*/
+/* =========================================
+   SAVE HIGH SCORE
+========================================= */
 
 function saveHighScore() {
 
-    if (
-        !window.opener
-    ) {
-
+    if (!window.opener) {
         return;
     }
-
 
     window.opener.postMessage(
 
         {
-
-            type:
-                "DINO_SAVE_SCORE",
-
-            score:
-                highScore
-
+            type: "DINO_SAVE_SCORE",
+            score: highScore
         },
 
         "*"
@@ -570,11 +487,9 @@ function saveHighScore() {
 }
 
 
-/*
-==================================================
-RECTANGLE
-==================================================
-*/
+/* =========================================
+   RECTANGLE
+========================================= */
 
 function rect(
     x,
@@ -584,8 +499,7 @@ function rect(
     color
 ) {
 
-    ctx.fillStyle =
-        color;
+    ctx.fillStyle = color;
 
     ctx.fillRect(
         Math.round(x),
@@ -596,216 +510,327 @@ function rect(
 }
 
 
-/*
-==================================================
-DINO
-==================================================
-*/
+/* =========================================
+   DINO
+========================================= */
 
 function drawDino() {
 
-    const x =
-        dino.x;
+    const x = dino.x;
+    const y = dino.y;
 
-    const y =
-        dino.y;
-
-    const c =
-        FOREGROUND;
+    const c = FOREGROUND;
 
 
     /*
-    Tail
+        Normal Dino
     */
 
+    if (!dino.ducking) {
+
+        /* Tail */
+
+        rect(
+            x - 7,
+            y + 38,
+            14,
+            8,
+            c
+        );
+
+        rect(
+            x - 15,
+            y + 31,
+            13,
+            8,
+            c
+        );
+
+        rect(
+            x - 21,
+            y + 25,
+            10,
+            7,
+            c
+        );
+
+
+        /* Body */
+
+        rect(
+            x + 6,
+            y + 28,
+            41,
+            37,
+            c
+        );
+
+
+        /* Spikes */
+
+        rect(
+            x + 8,
+            y + 22,
+            8,
+            8,
+            c
+        );
+
+        rect(
+            x + 18,
+            y + 17,
+            8,
+            10,
+            c
+        );
+
+        rect(
+            x + 28,
+            y + 13,
+            8,
+            14,
+            c
+        );
+
+
+        /* Neck */
+
+        rect(
+            x + 35,
+            y + 13,
+            19,
+            32,
+            c
+        );
+
+
+        /* Head */
+
+        rect(
+            x + 38,
+            y + 3,
+            30,
+            29,
+            c
+        );
+
+
+        /* Snout */
+
+        rect(
+            x + 58,
+            y + 16,
+            19,
+            13,
+            c
+        );
+
+        rect(
+            x + 67,
+            y + 21,
+            10,
+            8,
+            c
+        );
+
+
+        /* Eye */
+
+        rect(
+            x + 56,
+            y + 8,
+            5,
+            5,
+            BACKGROUND
+        );
+
+
+        /* Mouth */
+
+        rect(
+            x + 62,
+            y + 27,
+            12,
+            2,
+            BACKGROUND
+        );
+
+
+        /* Arm */
+
+        rect(
+            x + 25,
+            y + 40,
+            18,
+            7,
+            c
+        );
+
+        rect(
+            x + 19,
+            y + 44,
+            10,
+            6,
+            c
+        );
+
+
+        /* Legs */
+
+        rect(
+            x + 12,
+            y + 58,
+            10,
+            17,
+            c
+        );
+
+        rect(
+            x + 35,
+            y + 57,
+            10,
+            18,
+            c
+        );
+
+
+        /* Feet */
+
+        rect(
+            x + 7,
+            y + 70,
+            18,
+            5,
+            c
+        );
+
+        rect(
+            x + 31,
+            y + 70,
+            19,
+            5,
+            c
+        );
+
+        return;
+    }
+
+
+    /*
+        DUCKING DINO
+
+        The body becomes lower.
+    */
+
+
+    /* Tail */
+
     rect(
-        x - 7,
-        y + 38,
-        14,
-        8,
+        x - 10,
+        y + 42,
+        16,
+        7,
         c
     );
 
     rect(
-        x - 15,
-        y + 31,
-        13,
-        8,
-        c
-    );
-
-    rect(
-        x - 21,
-        y + 25,
-        10,
+        x - 19,
+        y + 36,
+        12,
         7,
         c
     );
 
 
-    /*
-    Body
-    */
+    /* Low body */
 
     rect(
-        x + 6,
-        y + 28,
-        41,
-        37,
+        x + 5,
+        y + 38,
+        45,
+        27,
         c
     );
 
 
-    /*
-    Spikes
-    */
-
-    rect(
-        x + 8,
-        y + 22,
-        8,
-        8,
-        c
-    );
-
-    rect(
-        x + 18,
-        y + 17,
-        8,
-        10,
-        c
-    );
-
-    rect(
-        x + 28,
-        y + 13,
-        8,
-        14,
-        c
-    );
-
-
-    /*
-    Neck
-    */
-
-    rect(
-        x + 35,
-        y + 13,
-        19,
-        32,
-        c
-    );
-
-
-    /*
-    Head
-    */
+    /* Head */
 
     rect(
         x + 38,
-        y + 3,
+        y + 25,
         30,
-        29,
+        26,
         c
     );
 
 
-    /*
-    Snout
-    */
+    /* Snout */
 
     rect(
-        x + 58,
-        y + 16,
-        19,
-        13,
-        c
-    );
-
-    rect(
-        x + 67,
-        y + 21,
-        10,
-        8,
+        x + 59,
+        y + 36,
+        20,
+        12,
         c
     );
 
 
-    /*
-    Eye
-    */
+    /* Eye */
 
     rect(
         x + 56,
-        y + 8,
+        y + 30,
         5,
         5,
         BACKGROUND
     );
 
 
-    /*
-    Mouth
-    */
+    /* Mouth */
 
     rect(
-        x + 62,
-        y + 27,
+        x + 63,
+        y + 47,
         12,
         2,
         BACKGROUND
     );
 
 
-    /*
-    Arm
-    */
+    /* Arm */
 
     rect(
         x + 25,
-        y + 40,
-        18,
+        y + 45,
+        19,
         7,
         c
     );
 
-    rect(
-        x + 19,
-        y + 44,
-        10,
-        6,
-        c
-    );
 
-
-    /*
-    Legs
-    */
+    /* Legs */
 
     rect(
-        x + 12,
-        y + 58,
+        x + 13,
+        y + 59,
         10,
-        17,
+        16,
         c
     );
 
     rect(
-        x + 35,
-        y + 57,
+        x + 36,
+        y + 59,
         10,
-        18,
+        16,
         c
     );
 
 
-    /*
-    Feet
-    */
+    /* Feet */
 
     rect(
-        x + 7,
+        x + 8,
         y + 70,
         18,
         5,
@@ -813,7 +838,7 @@ function drawDino() {
     );
 
     rect(
-        x + 31,
+        x + 32,
         y + 70,
         19,
         5,
@@ -822,16 +847,13 @@ function drawDino() {
 }
 
 
-/*
-==================================================
-LARGE CACTUS
-==================================================
-*/
+/* =========================================
+   LARGE CACTUS
+========================================= */
 
 function drawLargeCactus(cactus) {
 
-    const x =
-        cactus.x;
+    const x = cactus.x;
 
     const y =
         GROUND - 78;
@@ -884,16 +906,13 @@ function drawLargeCactus(cactus) {
 }
 
 
-/*
-==================================================
-SMALL CACTUS
-==================================================
-*/
+/* =========================================
+   SMALL CACTUS
+========================================= */
 
 function drawSmallCactus(cactus) {
 
-    const x =
-        cactus.x;
+    const x = cactus.x;
 
     const y =
         GROUND - 54;
@@ -946,11 +965,179 @@ function drawSmallCactus(cactus) {
 }
 
 
-/*
-==================================================
-CLOUD
-==================================================
-*/
+/* =========================================
+   FLYING DINOSAUR
+========================================= */
+
+function drawFlyingDinosaur(dinoFly) {
+
+    const x =
+        dinoFly.x;
+
+    const y =
+        dinoFly.y;
+
+    const c =
+        FOREGROUND;
+
+
+    /*
+        Body
+    */
+
+    rect(
+        x + 10,
+        y + 16,
+        38,
+        20,
+        c
+    );
+
+
+    /*
+        Head
+    */
+
+    rect(
+        x + 38,
+        y + 8,
+        27,
+        25,
+        c
+    );
+
+
+    /*
+        Snout
+    */
+
+    rect(
+        x + 58,
+        y + 18,
+        18,
+        10,
+        c
+    );
+
+
+    /*
+        Eye
+    */
+
+    rect(
+        x + 53,
+        y + 13,
+        4,
+        4,
+        BACKGROUND
+    );
+
+
+    /*
+        Wing 1
+    */
+
+    ctx.fillStyle = c;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x + 22,
+        y + 19
+    );
+
+    ctx.lineTo(
+        x + 8,
+        y - 2
+    );
+
+    ctx.lineTo(
+        x + 2,
+        y + 19
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /*
+        Wing 2
+    */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x + 31,
+        y + 19
+    );
+
+    ctx.lineTo(
+        x + 22,
+        y - 8
+    );
+
+    ctx.lineTo(
+        x + 18,
+        y + 17
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /*
+        Tail
+    */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        x + 12,
+        y + 20
+    );
+
+    ctx.lineTo(
+        x - 18,
+        y + 7
+    );
+
+    ctx.lineTo(
+        x - 8,
+        y + 25
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /*
+        Feet
+    */
+
+    rect(
+        x + 18,
+        y + 33,
+        6,
+        8,
+        c
+    );
+
+    rect(
+        x + 39,
+        y + 33,
+        6,
+        8,
+        c
+    );
+}
+
+
+/* =========================================
+   CLOUD
+========================================= */
 
 function drawCloud(cloud) {
 
@@ -1001,11 +1188,9 @@ function drawCloud(cloud) {
 }
 
 
-/*
-==================================================
-CREATE CACTUS
-==================================================
-*/
+/* =========================================
+   CREATE CACTUS
+========================================= */
 
 function createCactus() {
 
@@ -1030,30 +1215,123 @@ function createCactus() {
 
         large:
             large
+    });
+}
+
+
+/* =========================================
+   CREATE FLYING DINOSAUR
+========================================= */
+
+function createFlyingDinosaur() {
+
+    /*
+        Three possible heights.
+
+        LOW:
+        You need to duck.
+
+        MID:
+        You can jump over it.
+
+        HIGH:
+        It passes above the Dino.
+    */
+
+    const heights = [
+
+        GROUND - 72,
+
+        GROUND - 115,
+
+        GROUND - 145
+
+    ];
+
+
+    const selectedHeight =
+        heights[
+            Math.floor(
+                Math.random() *
+                heights.length
+            )
+        ];
+
+
+    flyingDinosaurs.push({
+
+        x:
+            WIDTH + 60,
+
+        y:
+            selectedHeight,
+
+        baseY:
+            selectedHeight,
+
+        width:
+            76,
+
+        height:
+            45,
+
+        phase:
+            Math.random() *
+            Math.PI * 2,
+
+        time:
+            0
 
     });
 }
 
 
-/*
-==================================================
-COLLISION
-==================================================
-*/
+/* =========================================
+   DINO COLLISION
+========================================= */
 
-function collision(cactus) {
+function dinoCollisionWithCactus(
+    cactus
+) {
 
-    const dinoLeft =
-        dino.x + 8;
+    let dinoLeft;
+    let dinoRight;
+    let dinoTop;
+    let dinoBottom;
 
-    const dinoRight =
-        dino.x + 50;
 
-    const dinoTop =
-        dino.y + 22;
+    /*
+        Smaller hitbox while ducking.
+    */
 
-    const dinoBottom =
-        dino.y + 74;
+    if (dino.ducking) {
+
+        dinoLeft =
+            dino.x + 8;
+
+        dinoRight =
+            dino.x + 67;
+
+        dinoTop =
+            dino.y + 37;
+
+        dinoBottom =
+            dino.y + 74;
+
+    } else {
+
+        dinoLeft =
+            dino.x + 8;
+
+        dinoRight =
+            dino.x + 67;
+
+        dinoTop =
+            dino.y + 5;
+
+        dinoBottom =
+            dino.y + 74;
+    }
 
 
     const cactusLeft =
@@ -1086,16 +1364,95 @@ function collision(cactus) {
 
         dinoBottom >
         cactusTop
-
     );
 }
 
 
-/*
-==================================================
-JUMP
-==================================================
-*/
+/* =========================================
+   FLYING DINO COLLISION
+========================================= */
+
+function dinoCollisionWithFlying(
+    flying
+) {
+
+    let dinoLeft;
+    let dinoRight;
+    let dinoTop;
+    let dinoBottom;
+
+
+    /*
+        Ducking gives the player
+        a much lower hitbox.
+    */
+
+    if (dino.ducking) {
+
+        dinoLeft =
+            dino.x + 8;
+
+        dinoRight =
+            dino.x + 67;
+
+        dinoTop =
+            dino.y + 40;
+
+        dinoBottom =
+            dino.y + 74;
+
+    } else {
+
+        dinoLeft =
+            dino.x + 8;
+
+        dinoRight =
+            dino.x + 67;
+
+        dinoTop =
+            dino.y + 5;
+
+        dinoBottom =
+            dino.y + 74;
+    }
+
+
+    const flyingLeft =
+        flying.x + 5;
+
+    const flyingRight =
+        flying.x +
+        flying.width -
+        5;
+
+    const flyingTop =
+        flying.y - 8;
+
+    const flyingBottom =
+        flying.y +
+        flying.height;
+
+
+    return (
+
+        dinoLeft <
+        flyingRight &&
+
+        dinoRight >
+        flyingLeft &&
+
+        dinoTop <
+        flyingBottom &&
+
+        dinoBottom >
+        flyingTop
+    );
+}
+
+
+/* =========================================
+   JUMP
+========================================= */
 
 function jump() {
 
@@ -1118,11 +1475,41 @@ function jump() {
 }
 
 
-/*
-==================================================
-UPDATE
-==================================================
-*/
+/* =========================================
+   DUCK
+========================================= */
+
+function setDucking(value) {
+
+    if (dead) {
+        return;
+    }
+
+
+    /*
+        You cannot duck while
+        jumping.
+    */
+
+    if (
+        value &&
+        !dino.jumping
+    ) {
+
+        dino.ducking =
+            true;
+
+    } else if (!value) {
+
+        dino.ducking =
+            false;
+    }
+}
+
+
+/* =========================================
+   UPDATE
+========================================= */
 
 function update(dt) {
 
@@ -1132,7 +1519,9 @@ function update(dt) {
 
 
     /*
-    DINO
+    ========================================
+    DINO PHYSICS
+    ========================================
     */
 
     dino.y +=
@@ -1165,7 +1554,9 @@ function update(dt) {
 
 
     /*
+    ========================================
     CACTUSES
+    ========================================
     */
 
     for (
@@ -1186,12 +1577,10 @@ function update(dt) {
             dt;
 
 
-        /*
-        COLLISION
-        */
-
         if (
-            collision(cactus)
+            dinoCollisionWithCactus(
+                cactus
+            )
         ) {
 
             dead =
@@ -1202,7 +1591,7 @@ function update(dt) {
 
 
         /*
-        PASSED CACTUS
+            Score when cactus leaves screen.
         */
 
         if (
@@ -1218,10 +1607,6 @@ function update(dt) {
             score++;
 
 
-            /*
-            HIGH SCORE
-            */
-
             if (
                 score >
                 highScore
@@ -1233,10 +1618,6 @@ function update(dt) {
                 saveHighScore();
             }
 
-
-            /*
-            SPEED
-            */
 
             if (
                 score > 0 &&
@@ -1251,7 +1632,124 @@ function update(dt) {
 
 
     /*
+    ========================================
+    FLYING DINOSAURS
+    ========================================
+    */
+
+    for (
+        let i =
+            flyingDinosaurs.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const flying =
+            flyingDinosaurs[i];
+
+
+        /*
+            Horizontal movement.
+        */
+
+        flying.x -=
+            speed *
+            dt;
+
+
+        /*
+            Smooth vertical movement.
+
+            They move up and down
+            instead of staying still.
+        */
+
+        flying.time +=
+            0.055 * dt;
+
+
+        flying.y =
+            flying.baseY +
+            Math.sin(
+                flying.time +
+                flying.phase
+            ) * 18;
+
+
+        /*
+            Collision.
+        */
+
+        if (
+            dinoCollisionWithFlying(
+                flying
+            )
+        ) {
+
+            dead =
+                true;
+
+            return;
+        }
+
+
+        /*
+            Remove when off screen.
+
+            Flying dinosaurs do NOT
+            increase the score.
+        */
+
+        if (
+            flying.x < -120
+        ) {
+
+            flyingDinosaurs.splice(
+                i,
+                1
+            );
+        }
+    }
+
+
+    /*
+    ========================================
+    FLYING DINO SPAWN
+    ========================================
+    */
+
+    flyingTimer -=
+        dt * 16.67;
+
+
+    if (
+        flyingTimer <= 0
+    ) {
+
+        /*
+            Only spawn flying dinosaurs
+            occasionally.
+        */
+
+        createFlyingDinosaur();
+
+
+        /*
+            Long delay between them.
+        */
+
+        flyingTimer =
+            5000 +
+            Math.random() * 4500;
+    }
+
+
+    /*
+    ========================================
     CLOUDS
+    ========================================
     */
 
     for (
@@ -1281,12 +1779,13 @@ function update(dt) {
 
 
     /*
+    ========================================
     CACTUS SPAWN
+    ========================================
     */
 
     obstacleTimer -=
-        dt *
-        16.67;
+        dt * 16.67;
 
 
     if (
@@ -1298,18 +1797,18 @@ function update(dt) {
 
         obstacleTimer =
             1100 +
-            Math.random() *
-            800;
+            Math.random() * 800;
     }
 
 
     /*
+    ========================================
     CLOUD SPAWN
+    ========================================
     */
 
     cloudTimer -=
-        dt *
-        16.67;
+        dt * 16.67;
 
 
     if (
@@ -1323,25 +1822,21 @@ function update(dt) {
 
             y:
                 40 +
-                Math.random() *
-                100
+                Math.random() * 100
 
         });
 
 
         cloudTimer =
             2500 +
-            Math.random() *
-            2500;
+            Math.random() * 2500;
     }
 }
 
 
-/*
-==================================================
-DRAW
-==================================================
-*/
+/* =========================================
+   DRAW
+========================================= */
 
 function draw() {
 
@@ -1441,7 +1936,21 @@ function draw() {
 
 
     /*
-    DINO
+    FLYING DINOSAURS
+    */
+
+    for (
+        const flying of flyingDinosaurs
+    ) {
+
+        drawFlyingDinosaur(
+            flying
+        );
+    }
+
+
+    /*
+    PLAYER
     */
 
     drawDino();
@@ -1465,6 +1974,7 @@ function draw() {
 
 
     ctx.fillText(
+
         "HI " +
         String(highScore)
             .padStart(5, "0"),
@@ -1484,6 +1994,7 @@ function draw() {
 
 
     ctx.fillText(
+
         String(score)
             .padStart(5, "0"),
 
@@ -1491,6 +2002,32 @@ function draw() {
 
         28
     );
+
+
+    /*
+    DUCK INDICATOR
+    */
+
+    if (
+        dino.ducking &&
+        !dead
+    ) {
+
+        ctx.textAlign =
+            "center";
+
+        ctx.font =
+            "14px Arial, Helvetica, sans-serif";
+
+        ctx.fillStyle =
+            SECONDARY;
+
+        ctx.fillText(
+            "DUCK",
+            dino.x + 35,
+            GROUND + 35
+        );
+    }
 
 
     /*
@@ -1553,21 +2090,23 @@ function draw() {
 }
 
 
-/*
-==================================================
-RESTART
-==================================================
-*/
+/* =========================================
+   RESTART
+========================================= */
 
 function restart() {
 
     obstacles = [];
 
+    flyingDinosaurs = [];
+
     clouds = [];
+
 
     score = 0;
 
     speed = 6;
+
 
     dead = false;
 
@@ -1581,24 +2120,40 @@ function restart() {
     dino.jumping =
         false;
 
+    dino.ducking =
+        false;
+
 
     obstacleTimer =
         800;
+
+
+    /*
+        Flying dinosaurs don't
+        immediately spawn.
+    */
+
+    flyingTimer =
+        5000 +
+        Math.random() * 3500;
+
 
     cloudTimer =
         1000;
 }
 
 
-/*
-==================================================
-KEYBOARD
-==================================================
-*/
+/* =========================================
+   KEYBOARD
+========================================= */
 
 document.addEventListener(
     "keydown",
     function(event) {
+
+        /*
+            SPACE / UP = JUMP
+        */
 
         if (
             event.code === "Space" ||
@@ -1608,16 +2163,54 @@ document.addEventListener(
             event.preventDefault();
 
             jump();
+
+            return;
         }
+
+
+        /*
+            DOWN / S = DUCK
+        */
+
+        if (
+            event.code === "ArrowDown" ||
+            event.code === "KeyS"
+        ) {
+
+            event.preventDefault();
+
+            setDucking(true);
+        }
+
     }
 );
 
 
-/*
-==================================================
-MOUSE / TOUCH
-==================================================
-*/
+/* =========================================
+   KEY RELEASE
+========================================= */
+
+document.addEventListener(
+    "keyup",
+    function(event) {
+
+        if (
+            event.code === "ArrowDown" ||
+            event.code === "KeyS"
+        ) {
+
+            event.preventDefault();
+
+            setDucking(false);
+        }
+
+    }
+);
+
+
+/* =========================================
+   TOUCH / MOUSE
+========================================= */
 
 canvas.addEventListener(
     "pointerdown",
@@ -1629,11 +2222,9 @@ canvas.addEventListener(
 );
 
 
-/*
-==================================================
-GAME LOOP
-==================================================
-*/
+/* =========================================
+   GAME LOOP
+========================================= */
 
 function gameLoop(time) {
 
@@ -1647,7 +2238,6 @@ function gameLoop(time) {
 
 
     if (dt > 2) {
-
         dt = 2;
     }
 
@@ -1663,11 +2253,9 @@ function gameLoop(time) {
 }
 
 
-/*
-==================================================
-START
-==================================================
-*/
+/* =========================================
+   START
+========================================= */
 
 restart();
 
@@ -1683,12 +2271,11 @@ requestAnimationFrame(
 
 `);
 
-            gameWindow.document.close();
+        gameWindow.document.close();
 
-            gameWindow.focus();
+        gameWindow.focus();
 
-        }
-    );
+    });
 
 </script>
 
