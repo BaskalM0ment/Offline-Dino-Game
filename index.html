@@ -83,13 +83,9 @@ body.dark button:hover {
 
 <script>
 
-const SCORE_KEY = "dinoHighScoreV6";
+const SCORE_KEY = "dinoHighScoreV7";
 const APPEARANCE_KEY = "dinoAppearance";
 
-
-/* =========================================
-   APPEARANCE
-========================================= */
 
 let appearance =
     localStorage.getItem(APPEARANCE_KEY) || "white";
@@ -135,10 +131,6 @@ document
     });
 
 
-/* =========================================
-   HIGH SCORE
-========================================= */
-
 function getHighScore() {
 
     const value =
@@ -157,76 +149,88 @@ function getHighScore() {
 }
 
 
+window.addEventListener(
+    "message",
+    function(event) {
+
+        if (!event.data) {
+            return;
+        }
+
+        if (
+            event.data.type !==
+            "DINO_SAVE_SCORE"
+        ) {
+            return;
+        }
+
+        const newScore =
+            Number(event.data.score);
+
+        if (
+            !Number.isFinite(newScore) ||
+            newScore < 0
+        ) {
+            return;
+        }
+
+        const oldScore =
+            getHighScore();
+
+        if (
+            newScore > oldScore
+        ) {
+
+            localStorage.setItem(
+                SCORE_KEY,
+                String(
+                    Math.floor(newScore)
+                )
+            );
+        }
+    }
+);
+
+
 /* =========================================
-   RECEIVE HIGH SCORE
-========================================= */
-
-window.addEventListener("message", function(event) {
-
-    if (!event.data) {
-        return;
-    }
-
-    if (event.data.type !== "DINO_SAVE_SCORE") {
-        return;
-    }
-
-    const newScore =
-        Number(event.data.score);
-
-    if (
-        !Number.isFinite(newScore) ||
-        newScore < 0
-    ) {
-        return;
-    }
-
-    const oldScore =
-        getHighScore();
-
-    if (newScore > oldScore) {
-
-        localStorage.setItem(
-            SCORE_KEY,
-            String(Math.floor(newScore))
-        );
-    }
-});
-
-
-/* =========================================
-   LAUNCH GAME
+   LAUNCH
 ========================================= */
 
 document
     .getElementById("launch")
-    .addEventListener("click", function() {
+    .addEventListener(
+        "click",
+        function() {
 
-        const gameWindow =
-            window.open(
-                "about:blank",
-                "_blank"
-            );
-
-        if (!gameWindow) {
-
-            alert(
-                "Please allow popups for this site."
-            );
-
-            return;
-        }
-
-        const savedHighScore =
-            getHighScore();
-
-        const gameAppearance =
-            appearance;
+            const gameWindow =
+                window.open(
+                    "about:blank",
+                    "_blank"
+                );
 
 
-        gameWindow.document.open();
+            if (!gameWindow) {
 
-        gameWindow.document.write(`
+                alert(
+                    "Please allow popups for this site."
+                );
+
+                return;
+            }
+
+
+            const savedHighScore =
+                getHighScore();
+
+
+            const gameAppearance =
+                appearance;
+
+
+            gameWindow.document.open();
+
+
+            gameWindow.document.write(`
 
 <!DOCTYPE html>
 
@@ -279,6 +283,8 @@ canvas {
     width: 900px;
     height: 300px;
 
+    image-rendering: auto;
+
 }
 
 </style>
@@ -289,16 +295,24 @@ canvas {
 
 <canvas id="game"></canvas>
 
+
 <script>
+
+
+/* =========================================
+   CANVAS
+========================================= */
 
 const canvas =
     document.getElementById("game");
+
 
 const ctx =
     canvas.getContext("2d");
 
 
 const WIDTH = 900;
+
 const HEIGHT = 300;
 
 
@@ -312,12 +326,14 @@ const DPR =
 canvas.width =
     WIDTH * DPR;
 
+
 canvas.height =
     HEIGHT * DPR;
 
 
 canvas.style.width =
     WIDTH + "px";
+
 
 canvas.style.height =
     HEIGHT + "px";
@@ -380,7 +396,7 @@ document.body.style.background =
 
 
 /* =========================================
-   SETTINGS
+   GAME SETTINGS
 ========================================= */
 
 const GROUND = 255;
@@ -388,6 +404,17 @@ const GROUND = 255;
 const GRAVITY = 0.62;
 
 const JUMP_POWER = 12.5;
+
+
+/*
+    Space must be held for this amount
+    of time before the game considers it
+    a duck command.
+
+    A quick tap still performs a jump.
+*/
+
+const DUCK_HOLD_TIME = 180;
 
 
 /* =========================================
@@ -398,7 +425,8 @@ const dino = {
 
     x: 90,
 
-    y: GROUND - 75,
+    y:
+        GROUND - 75,
 
     velocity: 0,
 
@@ -407,6 +435,15 @@ const dino = {
     ducking: false
 
 };
+
+
+/* =========================================
+   SPACE STATE
+========================================= */
+
+let spaceHeld = false;
+
+let spaceDownTime = 0;
 
 
 /* =========================================
@@ -420,7 +457,7 @@ let highScore =
 
 
 /* =========================================
-   GAME STATE
+   OBJECTS
 ========================================= */
 
 let obstacles = [];
@@ -428,6 +465,11 @@ let obstacles = [];
 let flyingDinosaurs = [];
 
 let clouds = [];
+
+
+/* =========================================
+   GAME
+========================================= */
 
 let speed = 6;
 
@@ -446,25 +488,6 @@ let lastTime =
 
 
 /* =========================================
-   SPACE CONTROL
-========================================= */
-
-let spaceHeld = false;
-
-let spacePressedTime = 0;
-
-
-/*
-    A quick Space press jumps.
-
-    Holding Space makes the Dino duck
-    after the initial jump window.
-*/
-
-const DUCK_DELAY = 150;
-
-
-/* =========================================
    SAVE HIGH SCORE
 ========================================= */
 
@@ -474,18 +497,24 @@ function saveHighScore() {
         return;
     }
 
+
     window.opener.postMessage(
+
         {
-            type: "DINO_SAVE_SCORE",
-            score: highScore
+            type:
+                "DINO_SAVE_SCORE",
+
+            score:
+                highScore
         },
+
         "*"
     );
 }
 
 
 /* =========================================
-   RECTANGLE
+   RECT
 ========================================= */
 
 function rect(
@@ -496,12 +525,18 @@ function rect(
     color
 ) {
 
-    ctx.fillStyle = color;
+    ctx.fillStyle =
+        color;
+
 
     ctx.fillRect(
+
         Math.round(x),
+
         Math.round(y),
+
         width,
+
         height
     );
 }
@@ -513,71 +548,303 @@ function rect(
 
 function drawDino() {
 
-    const x = dino.x;
-    const y = dino.y;
-    const c = FOREGROUND;
+    const x =
+        dino.x;
 
+    const y =
+        dino.y;
+
+    const c =
+        FOREGROUND;
+
+
+    /*
+        NORMAL DINO
+    */
 
     if (!dino.ducking) {
 
-        rect(x - 7, y + 38, 14, 8, c);
-        rect(x - 15, y + 31, 13, 8, c);
-        rect(x - 21, y + 25, 10, 7, c);
+        rect(
+            x - 7,
+            y + 38,
+            14,
+            8,
+            c
+        );
 
-        rect(x + 6, y + 28, 41, 37, c);
+        rect(
+            x - 15,
+            y + 31,
+            13,
+            8,
+            c
+        );
 
-        rect(x + 8, y + 22, 8, 8, c);
-        rect(x + 18, y + 17, 8, 10, c);
-        rect(x + 28, y + 13, 8, 14, c);
+        rect(
+            x - 21,
+            y + 25,
+            10,
+            7,
+            c
+        );
 
-        rect(x + 35, y + 13, 19, 32, c);
 
-        rect(x + 38, y + 3, 30, 29, c);
+        rect(
+            x + 6,
+            y + 28,
+            41,
+            37,
+            c
+        );
 
-        rect(x + 58, y + 16, 19, 13, c);
-        rect(x + 67, y + 21, 10, 8, c);
 
-        rect(x + 56, y + 8, 5, 5, BACKGROUND);
+        rect(
+            x + 8,
+            y + 22,
+            8,
+            8,
+            c
+        );
 
-        rect(x + 62, y + 27, 12, 2, BACKGROUND);
+        rect(
+            x + 18,
+            y + 17,
+            8,
+            10,
+            c
+        );
 
-        rect(x + 25, y + 40, 18, 7, c);
-        rect(x + 19, y + 44, 10, 6, c);
+        rect(
+            x + 28,
+            y + 13,
+            8,
+            14,
+            c
+        );
 
-        rect(x + 12, y + 58, 10, 17, c);
-        rect(x + 35, y + 57, 10, 18, c);
 
-        rect(x + 7, y + 70, 18, 5, c);
-        rect(x + 31, y + 70, 19, 5, c);
+        rect(
+            x + 35,
+            y + 13,
+            19,
+            32,
+            c
+        );
+
+
+        rect(
+            x + 38,
+            y + 3,
+            30,
+            29,
+            c
+        );
+
+
+        rect(
+            x + 58,
+            y + 16,
+            19,
+            13,
+            c
+        );
+
+
+        rect(
+            x + 67,
+            y + 21,
+            10,
+            8,
+            c
+        );
+
+
+        rect(
+            x + 56,
+            y + 8,
+            5,
+            5,
+            BACKGROUND
+        );
+
+
+        rect(
+            x + 62,
+            y + 27,
+            12,
+            2,
+            BACKGROUND
+        );
+
+
+        rect(
+            x + 25,
+            y + 40,
+            18,
+            7,
+            c
+        );
+
+
+        rect(
+            x + 19,
+            y + 44,
+            10,
+            6,
+            c
+        );
+
+
+        rect(
+            x + 12,
+            y + 58,
+            10,
+            17,
+            c
+        );
+
+
+        rect(
+            x + 35,
+            y + 57,
+            10,
+            18,
+            c
+        );
+
+
+        rect(
+            x + 7,
+            y + 70,
+            18,
+            5,
+            c
+        );
+
+
+        rect(
+            x + 31,
+            y + 70,
+            19,
+            5,
+            c
+        );
+
 
         return;
     }
 
 
-    /* =====================================
-       DUCKING DINO
-    ===================================== */
+    /*
+        DUCKING DINO
+    */
 
-    rect(x - 10, y + 42, 16, 7, c);
-    rect(x - 19, y + 36, 12, 7, c);
+    rect(
+        x - 10,
+        y + 42,
+        16,
+        7,
+        c
+    );
 
-    rect(x + 5, y + 38, 45, 27, c);
 
-    rect(x + 38, y + 25, 30, 26, c);
+    rect(
+        x - 19,
+        y + 36,
+        12,
+        7,
+        c
+    );
 
-    rect(x + 59, y + 36, 20, 12, c);
 
-    rect(x + 56, y + 30, 5, 5, BACKGROUND);
+    rect(
+        x + 5,
+        y + 38,
+        45,
+        27,
+        c
+    );
 
-    rect(x + 63, y + 47, 12, 2, BACKGROUND);
 
-    rect(x + 25, y + 45, 19, 7, c);
+    rect(
+        x + 38,
+        y + 25,
+        30,
+        26,
+        c
+    );
 
-    rect(x + 13, y + 59, 10, 16, c);
-    rect(x + 36, y + 59, 10, 16, c);
 
-    rect(x + 8, y + 70, 18, 5, c);
-    rect(x + 32, y + 70, 19, 5, c);
+    rect(
+        x + 59,
+        y + 36,
+        20,
+        12,
+        c
+    );
+
+
+    rect(
+        x + 56,
+        y + 30,
+        5,
+        5,
+        BACKGROUND
+    );
+
+
+    rect(
+        x + 63,
+        y + 47,
+        12,
+        2,
+        BACKGROUND
+    );
+
+
+    rect(
+        x + 25,
+        y + 45,
+        19,
+        7,
+        c
+    );
+
+
+    rect(
+        x + 13,
+        y + 59,
+        10,
+        16,
+        c
+    );
+
+
+    rect(
+        x + 36,
+        y + 59,
+        10,
+        16,
+        c
+    );
+
+
+    rect(
+        x + 8,
+        y + 70,
+        18,
+        5,
+        c
+    );
+
+
+    rect(
+        x + 32,
+        y + 70,
+        19,
+        5,
+        c
+    );
 }
 
 
@@ -587,17 +854,59 @@ function drawDino() {
 
 function drawLargeCactus(cactus) {
 
-    const x = cactus.x;
-    const y = GROUND - 78;
-    const c = FOREGROUND;
+    const x =
+        cactus.x;
 
-    rect(x + 18, y, 20, 78, c);
+    const y =
+        GROUND - 78;
 
-    rect(x + 2, y + 36, 22, 9, c);
-    rect(x + 2, y + 23, 9, 22, c);
+    const c =
+        FOREGROUND;
 
-    rect(x + 34, y + 43, 24, 9, c);
-    rect(x + 49, y + 29, 9, 23, c);
+
+    rect(
+        x + 18,
+        y,
+        20,
+        78,
+        c
+    );
+
+
+    rect(
+        x + 2,
+        y + 36,
+        22,
+        9,
+        c
+    );
+
+
+    rect(
+        x + 2,
+        y + 23,
+        9,
+        22,
+        c
+    );
+
+
+    rect(
+        x + 34,
+        y + 43,
+        24,
+        9,
+        c
+    );
+
+
+    rect(
+        x + 49,
+        y + 29,
+        9,
+        23,
+        c
+    );
 }
 
 
@@ -607,29 +916,76 @@ function drawLargeCactus(cactus) {
 
 function drawSmallCactus(cactus) {
 
-    const x = cactus.x;
-    const y = GROUND - 54;
-    const c = FOREGROUND;
+    const x =
+        cactus.x;
 
-    rect(x + 11, y, 14, 54, c);
+    const y =
+        GROUND - 54;
 
-    rect(x, y + 27, 15, 8, c);
-    rect(x, y + 18, 8, 17, c);
+    const c =
+        FOREGROUND;
 
-    rect(x + 21, y + 34, 16, 8, c);
-    rect(x + 29, y + 24, 8, 18, c);
+
+    rect(
+        x + 11,
+        y,
+        14,
+        54,
+        c
+    );
+
+
+    rect(
+        x,
+        y + 27,
+        15,
+        8,
+        c
+    );
+
+
+    rect(
+        x,
+        y + 18,
+        8,
+        17,
+        c
+    );
+
+
+    rect(
+        x + 21,
+        y + 34,
+        16,
+        8,
+        c
+    );
+
+
+    rect(
+        x + 29,
+        y + 24,
+        8,
+        18,
+        c
+    );
 }
 
 
 /* =========================================
-   FLYING DINOSAUR
+   FLYING DINO
 ========================================= */
 
 function drawFlyingDinosaur(flying) {
 
-    const x = flying.x;
-    const y = flying.y;
-    const c = FOREGROUND;
+    const x =
+        flying.x;
+
+    const y =
+        flying.y;
+
+    const c =
+        FOREGROUND;
 
 
     rect(
@@ -668,7 +1024,9 @@ function drawFlyingDinosaur(flying) {
     );
 
 
-    ctx.fillStyle = c;
+    ctx.fillStyle =
+        c;
+
 
     ctx.beginPath();
 
@@ -744,6 +1102,7 @@ function drawFlyingDinosaur(flying) {
         c
     );
 
+
     rect(
         x + 39,
         y + 33,
@@ -766,6 +1125,7 @@ function drawCloud(cloud) {
 
     ctx.beginPath();
 
+
     ctx.arc(
         cloud.x + 15,
         cloud.y + 14,
@@ -773,6 +1133,7 @@ function drawCloud(cloud) {
         0,
         Math.PI * 2
     );
+
 
     ctx.arc(
         cloud.x + 33,
@@ -782,6 +1143,7 @@ function drawCloud(cloud) {
         Math.PI * 2
     );
 
+
     ctx.arc(
         cloud.x + 52,
         cloud.y + 15,
@@ -789,6 +1151,7 @@ function drawCloud(cloud) {
         0,
         Math.PI * 2
     );
+
 
     ctx.fill();
 
@@ -835,18 +1198,18 @@ function createCactus() {
 
 
 /* =========================================
-   CREATE SAFE FLYING DINOSAUR
+   CREATE SAFE FLYING DINO
 ========================================= */
 
 function createFlyingDinosaur() {
 
     let spawnX =
-        WIDTH + 180;
+        WIDTH + 220;
 
 
     /*
-        Never place a flying dinosaur
-        directly above a cactus.
+        Never spawn directly above
+        an upcoming cactus.
     */
 
     for (
@@ -857,21 +1220,17 @@ function createFlyingDinosaur() {
             cactus.x >
                 WIDTH - 150 &&
             cactus.x <
-                WIDTH + 300
+                WIDTH + 350
         ) {
 
             spawnX =
                 Math.max(
                     spawnX,
-                    cactus.x + 220
+                    cactus.x + 240
                 );
         }
     }
 
-
-    /*
-        Safe heights.
-    */
 
     const safeHeights = [
 
@@ -967,15 +1326,18 @@ function dinoCollisionWithCactus(
     const cactusLeft =
         cactus.x + 8;
 
+
     const cactusRight =
         cactus.x +
         cactus.width -
         8;
 
+
     const cactusTop =
         GROUND -
         cactus.height +
         6;
+
 
     const cactusBottom =
         GROUND;
@@ -1045,13 +1407,16 @@ function dinoCollisionWithFlying(
     const flyingLeft =
         flying.x + 10;
 
+
     const flyingRight =
         flying.x +
         flying.width -
         10;
 
+
     const flyingTop =
         flying.y + 2;
+
 
     const flyingBottom =
         flying.y +
@@ -1102,10 +1467,10 @@ function jump() {
 
 
 /* =========================================
-   SPACE PRESSED
+   SPACE DOWN
 ========================================= */
 
-function spaceDown() {
+function handleSpaceDown() {
 
     if (spaceHeld) {
         return;
@@ -1116,16 +1481,13 @@ function spaceDown() {
         true;
 
 
-    spacePressedTime =
+    spaceDownTime =
         performance.now();
 
 
     /*
-        Every new Space press
-        immediately starts a jump.
-
-        If the player keeps holding Space,
-        the game later switches to ducking.
+        A new Space press immediately
+        performs the jump.
     */
 
     jump();
@@ -1133,13 +1495,14 @@ function spaceDown() {
 
 
 /* =========================================
-   SPACE RELEASED
+   SPACE UP
 ========================================= */
 
-function spaceUp() {
+function handleSpaceUp() {
 
     spaceHeld =
         false;
+
 
     dino.ducking =
         false;
@@ -1162,20 +1525,33 @@ function updateSpaceDuck() {
 
 
     /*
-        Only duck after holding Space.
-
-        This prevents a normal quick
-        Space jump from instantly becoming
-        a duck.
+        How long Space has been held.
     */
 
     const heldTime =
         performance.now() -
-        spacePressedTime;
+        spaceDownTime;
 
+
+    /*
+        If Space has been held long enough
+        AND the Dino is on the ground,
+        start ducking.
+
+        This means:
+
+        Tap Space:
+        Jump.
+
+        Hold Space:
+        Jump, land, then duck.
+
+        Keep holding:
+        Continue ducking.
+    */
 
     if (
-        heldTime >= DUCK_DELAY &&
+        heldTime >= DUCK_HOLD_TIME &&
         !dino.jumping
     ) {
 
@@ -1224,8 +1600,10 @@ function update(dt) {
         dino.y =
             floor;
 
+
         dino.velocity =
             0;
+
 
         dino.jumping =
             false;
@@ -1288,6 +1666,7 @@ function update(dt) {
                 highScore =
                     score;
 
+
                 saveHighScore();
             }
 
@@ -1325,10 +1704,6 @@ function update(dt) {
             speed *
             dt;
 
-
-        /*
-            Smooth vertical movement.
-        */
 
         flying.time +=
             0.055 *
@@ -1385,10 +1760,8 @@ function update(dt) {
 
 
         /*
-            Check cactus positions.
-
-            This is the important part that
-            prevents impossible combinations.
+            Do not spawn one while
+            a cactus is approaching.
         */
 
         for (
@@ -1399,7 +1772,7 @@ function update(dt) {
                 cactus.x >
                     WIDTH - 120 &&
                 cactus.x <
-                    WIDTH + 260
+                    WIDTH + 300
             ) {
 
                 safeToSpawn =
@@ -1523,7 +1896,6 @@ function update(dt) {
             y:
                 40 +
                 Math.random() * 100
-
         });
 
 
@@ -1629,18 +2001,21 @@ function draw() {
     drawDino();
 
 
-    /*
-        High score.
-    */
+    /* ======================================
+       SCORE
+    ====================================== */
 
     ctx.textAlign =
         "left";
 
+
     ctx.textBaseline =
         "alphabetic";
 
+
     ctx.font =
         "18px Arial, Helvetica, sans-serif";
+
 
     ctx.fillStyle =
         FOREGROUND;
@@ -1657,10 +2032,6 @@ function draw() {
     );
 
 
-    /*
-        Current score.
-    */
-
     ctx.textAlign =
         "right";
 
@@ -1675,9 +2046,9 @@ function draw() {
     );
 
 
-    /*
-        Game over.
-    */
+    /* ======================================
+       GAME OVER
+    ====================================== */
 
     if (dead) {
 
@@ -1754,11 +2125,14 @@ function restart() {
     dino.y =
         GROUND - 75;
 
+
     dino.velocity =
         0;
 
+
     dino.jumping =
         false;
+
 
     dino.ducking =
         false;
@@ -1766,6 +2140,10 @@ function restart() {
 
     spaceHeld =
         false;
+
+
+    spaceDownTime =
+        0;
 
 
     obstacleTimer =
@@ -1791,9 +2169,9 @@ document.addEventListener(
     function(event) {
 
         /*
-            ONLY SPACE IS USED.
+            ONLY SPACE.
 
-            ArrowDown and S have been removed.
+            S and ArrowDown are ignored.
         */
 
         if (
@@ -1802,14 +2180,14 @@ document.addEventListener(
 
             event.preventDefault();
 
-            spaceDown();
+            handleSpaceDown();
         }
     }
 );
 
 
 /* =========================================
-   KEY RELEASE
+   KEYBOARD RELEASE
 ========================================= */
 
 document.addEventListener(
@@ -1822,7 +2200,7 @@ document.addEventListener(
 
             event.preventDefault();
 
-            spaceUp();
+            handleSpaceUp();
         }
     }
 );
@@ -1886,6 +2264,7 @@ function gameLoop(time) {
 
 restart();
 
+
 requestAnimationFrame(
     gameLoop
 );
@@ -1898,11 +2277,11 @@ requestAnimationFrame(
 
 `);
 
-        gameWindow.document.close();
+            gameWindow.document.close();
 
-        gameWindow.focus();
+            gameWindow.focus();
 
-    });
+        });
 
 </script>
 
