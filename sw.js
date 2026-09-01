@@ -1,126 +1,111 @@
-const CACHE_NAME = "dino-runner-v12";
+const CACHE_NAME = "dino-runner-v13";
 
-const FILES_TO_CACHE = [
+const FILES = [
     "/",
     "/index.html",
     "/sw.js"
 ];
 
 
-self.addEventListener(
-    "install",
-    event => {
+self.addEventListener("install", event => {
 
-        event.waitUntil(
-            caches.open(
-                CACHE_NAME
-            ).then(
-                cache =>
-                    cache.addAll(
-                        FILES_TO_CACHE
-                    )
-            )
-        );
+    event.waitUntil(
 
-        self.skipWaiting();
+        caches.open(CACHE_NAME)
+            .then(cache => {
+
+                return cache.addAll(FILES);
+
+            })
+
+    );
+
+    self.skipWaiting();
+});
+
+
+self.addEventListener("activate", event => {
+
+    event.waitUntil(
+
+        caches.keys()
+            .then(keys => {
+
+                return Promise.all(
+
+                    keys
+                        .filter(
+                            key =>
+                                key !== CACHE_NAME
+                        )
+                        .map(
+                            key =>
+                                caches.delete(key)
+                        )
+
+                );
+
+            })
+
+    );
+
+    self.clients.claim();
+});
+
+
+self.addEventListener("fetch", event => {
+
+    if (
+        event.request.method !== "GET"
+    ) {
+        return;
     }
-);
 
 
-self.addEventListener(
-    "activate",
-    event => {
+    event.respondWith(
 
-        event.waitUntil(
+        caches.match(event.request)
+            .then(cached => {
 
-            caches.keys().then(
-                keys => {
-
-                    return Promise.all(
-
-                        keys
-                            .filter(
-                                key =>
-                                    key !==
-                                    CACHE_NAME
-                            )
-                            .map(
-                                key =>
-                                    caches.delete(
-                                        key
-                                    )
-                            )
-
-                    );
+                if (cached) {
+                    return cached;
                 }
-            )
-        );
-
-        self.clients.claim();
-    }
-);
 
 
-self.addEventListener(
-    "fetch",
-    event => {
+                return fetch(
+                    event.request
+                )
+                    .then(response => {
 
-        if (
-            event.request.method !==
-            "GET"
-        ) {
-            return;
-        }
+                        if (
+                            response &&
+                            response.status === 200 &&
+                            response.type === "basic"
+                        ) {
 
-        event.respondWith(
+                            const copy =
+                                response.clone();
 
-            caches.match(
-                event.request
-            ).then(
-                cached => {
 
-                    if (cached) {
-                        return cached;
-                    }
+                            caches.open(
+                                CACHE_NAME
+                            )
+                                .then(cache => {
 
-                    return fetch(
-                        event.request
-                    ).then(
-                        response => {
+                                    cache.put(
+                                        event.request,
+                                        copy
+                                    );
 
-                            /*
-                                Cache successful
-                                same-origin responses.
-                            */
-
-                            if (
-                                response &&
-                                response.status === 200 &&
-                                response.type ===
-                                    "basic"
-                            ) {
-
-                                const copy =
-                                    response.clone();
-
-                                caches.open(
-                                    CACHE_NAME
-                                ).then(
-                                    cache => {
-
-                                        cache.put(
-                                            event.request,
-                                            copy
-                                        );
-                                    }
-                                );
-                            }
-
-                            return response;
+                                });
                         }
-                    );
-                }
-            )
-        );
-    }
-);
+
+
+                        return response;
+
+                    });
+
+            })
+
+    );
+});
