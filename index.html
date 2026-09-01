@@ -82,7 +82,7 @@ body.dark button:hover {
 
 <script>
 
-const SCORE_KEY = "dinoBestScoreV10";
+const SCORE_KEY = "dinoBestScoreV11";
 const APPEARANCE_KEY = "dinoAppearance";
 
 let appearance =
@@ -148,12 +148,11 @@ function getHighScore() {
 
 window.addEventListener(
     "message",
-    function (event) {
+    function(event) {
 
         if (
             !event.data ||
-            event.data.type !==
-            "DINO_SAVE_SCORE"
+            event.data.type !== "DINO_SAVE_SCORE"
         ) {
             return;
         }
@@ -171,15 +170,11 @@ window.addEventListener(
         const oldScore =
             getHighScore();
 
-        if (
-            newScore > oldScore
-        ) {
+        if (newScore > oldScore) {
 
             localStorage.setItem(
                 SCORE_KEY,
-                String(
-                    Math.floor(newScore)
-                )
+                String(Math.floor(newScore))
             );
         }
     }
@@ -187,7 +182,7 @@ window.addEventListener(
 
 
 document.getElementById("launch").onclick =
-function () {
+function() {
 
     const gameWindow =
         window.open(
@@ -214,9 +209,7 @@ function () {
 
     gameWindow.document.open();
 
-
-    gameWindow.document.write(`
-<!DOCTYPE html>
+    gameWindow.document.write(`<!DOCTYPE html>
 
 <html lang="en">
 
@@ -370,28 +363,26 @@ canvas {
 
 </head>
 
-
 <body>
 
 <div id="gameArea">
 
 <canvas id="game"></canvas>
 
-
 <div id="instructions">
 
 <h2>HOW TO PLAY</h2>
 
 <p>
-Press and release
+Tap and release
 <span class="key">SPACE</span>
-quickly to jump.
+to jump.
 </p>
 
 <p>
 Hold
 <span class="key">SPACE</span>
-to duck immediately.
+to duck.
 </p>
 
 <p>
@@ -405,7 +396,6 @@ Your high score saves automatically.
 </div>
 
 </div>
-
 
 <script>
 
@@ -432,18 +422,19 @@ const JUMP_POWER = 12.5;
 
 
 /*
-    The dino ducks immediately.
+    How long Space must be held
+    before ducking starts.
 
-    This is only used to decide
-    whether a press was a tap.
+    The dino jumps immediately
+    when Space is pressed.
 */
 
-const TAP_TIME = 180;
+const DUCK_HOLD_TIME = 180;
 
 
 /*
-    Flying dinosaurs keep a large
-    horizontal distance from cactuses.
+    Flying dinosaurs stay far away
+    from cactus spawning zones.
 */
 
 const FLYING_CACTUS_GAP = 350;
@@ -593,7 +584,7 @@ let lastTime =
 
 
 /*
-    Save high score
+    Save high score.
 */
 
 function saveHighScore() {
@@ -602,14 +593,10 @@ function saveHighScore() {
         return;
     }
 
-
     window.opener.postMessage(
         {
-            type:
-                "DINO_SAVE_SCORE",
-
-            score:
-                highScore
+            type: "DINO_SAVE_SCORE",
+            score: highScore
         },
         "*"
     );
@@ -617,7 +604,7 @@ function saveHighScore() {
 
 
 /*
-    Rectangle helper
+    Rectangle helper.
 */
 
 function rect(
@@ -641,7 +628,7 @@ function rect(
 
 
 /*
-    Draw normal dino
+    Draw normal dino.
 */
 
 function drawDino() {
@@ -816,7 +803,7 @@ function drawDino() {
 
 
     /*
-        Ducking dino
+        Ducking dino.
     */
 
     rect(
@@ -941,7 +928,7 @@ function drawDino() {
 
 
 /*
-    Large cactus
+    Large cactus.
 */
 
 function drawLargeCactus(cactus) {
@@ -1003,7 +990,7 @@ function drawLargeCactus(cactus) {
 
 
 /*
-    Small cactus
+    Small cactus.
 */
 
 function drawSmallCactus(cactus) {
@@ -1065,7 +1052,7 @@ function drawSmallCactus(cactus) {
 
 
 /*
-    Flying dinosaur
+    Flying dinosaur.
 */
 
 function drawFlyingDinosaur(flying) {
@@ -1229,7 +1216,7 @@ function drawFlyingDinosaur(flying) {
 
 
 /*
-    Clouds
+    Clouds.
 */
 
 function drawCloud(cloud) {
@@ -1282,8 +1269,7 @@ function drawCloud(cloud) {
 
 
 /*
-    Make sure a cactus does not
-    spawn close to a flying dino.
+    Check whether a cactus can spawn.
 */
 
 function cactusSafeToSpawn(
@@ -1330,8 +1316,8 @@ function cactusSafeToSpawn(
 
 
 /*
-    Make sure a flying dino does not
-    spawn close to a cactus.
+    Check whether a flying dinosaur
+    can spawn.
 */
 
 function flyingSafeToSpawn(x) {
@@ -1383,7 +1369,7 @@ function flyingSafeToSpawn(x) {
 
 
 /*
-    Create cactus
+    Create cactus.
 */
 
 function createCactus() {
@@ -1448,7 +1434,7 @@ function createCactus() {
 
 
 /*
-    Create flying dinosaur
+    Create flying dinosaur.
 */
 
 function createFlyingDinosaur() {
@@ -1525,49 +1511,36 @@ function createFlyingDinosaur() {
 
 
 /*
-    Cactus collision
+    Cactus collision.
 */
 
 function dinoCollisionWithCactus(
     cactus
 ) {
 
-    let left;
-    let right;
+    const left =
+        dino.x + 8;
+
+    const right =
+        dino.x + 67;
+
+
     let top;
-    let bottom;
 
-
-    if (
-        dino.ducking
-    ) {
-
-        left =
-            dino.x + 8;
-
-        right =
-            dino.x + 67;
+    if (dino.ducking) {
 
         top =
             dino.y + 38;
 
-        bottom =
-            dino.y + 74;
-
     } else {
-
-        left =
-            dino.x + 8;
-
-        right =
-            dino.x + 67;
 
         top =
             dino.y + 5;
-
-        bottom =
-            dino.y + 74;
     }
+
+
+    const bottom =
+        dino.y + 74;
 
 
     const cactusLeft =
@@ -1598,49 +1571,36 @@ function dinoCollisionWithCactus(
 
 
 /*
-    Flying dino collision
+    Flying dinosaur collision.
 */
 
 function dinoCollisionWithFlying(
     flying
 ) {
 
-    let left;
-    let right;
+    const left =
+        dino.x + 12;
+
+    const right =
+        dino.x + 62;
+
+
     let top;
-    let bottom;
 
-
-    if (
-        dino.ducking
-    ) {
-
-        left =
-            dino.x + 12;
-
-        right =
-            dino.x + 62;
+    if (dino.ducking) {
 
         top =
             dino.y + 43;
 
-        bottom =
-            dino.y + 72;
-
     } else {
-
-        left =
-            dino.x + 12;
-
-        right =
-            dino.x + 62;
 
         top =
             dino.y + 10;
-
-        bottom =
-            dino.y + 70;
     }
+
+
+    const bottom =
+        dino.y + 70;
 
 
     const flyingLeft =
@@ -1675,43 +1635,13 @@ function dinoCollisionWithFlying(
 
 
 /*
-    Jump
-*/
+    Space pressed.
 
-function jump() {
+    IMPORTANT:
 
-    if (dead) {
+    The dino jumps immediately.
 
-        restart();
-
-        return;
-    }
-
-
-    if (
-        !dino.jumping
-    ) {
-
-        dino.ducking =
-            false;
-
-        dino.velocity =
-            -JUMP_POWER;
-
-        dino.jumping =
-            true;
-    }
-}
-
-
-/*
-    SPACE DOWN
-
-    The important part:
-
-    The dino ducks immediately.
-
-    It does NOT jump here.
+    It does NOT duck here.
 */
 
 function spaceDown() {
@@ -1744,23 +1674,56 @@ function spaceDown() {
 
 
     /*
-        DUCK IMMEDIATELY
+        JUMP IMMEDIATELY.
     */
 
-    dino.ducking =
-        true;
+    if (!dino.jumping) {
+
+        dino.ducking =
+            false;
+
+        dino.velocity =
+            -JUMP_POWER;
+
+        dino.jumping =
+            true;
+    }
 }
 
 
 /*
-    SPACE UP
-
-    A quick tap means jump.
-
-    Holding Space means duck.
+    Space released.
 */
 
 function spaceUp() {
+
+    if (!spaceHeld) {
+        return;
+    }
+
+
+    spaceHeld =
+        false;
+
+
+    /*
+        Always stop ducking
+        when Space is released.
+    */
+
+    dino.ducking =
+        false;
+}
+
+
+/*
+    Update Space.
+
+    Holding Space eventually
+    activates ducking.
+*/
+
+function updateSpace() {
 
     if (!spaceHeld) {
         return;
@@ -1772,67 +1735,27 @@ function spaceUp() {
         spaceStartTime;
 
 
-    spaceHeld =
-        false;
-
-
     /*
-        Quick tap.
+        The jump already happened.
+
+        Only after holding Space
+        for the required time do
+        we activate ducking.
     */
 
     if (
-        heldTime < TAP_TIME
+        heldTime >= DUCK_HOLD_TIME &&
+        !dead
     ) {
 
         dino.ducking =
-            false;
-
-
-        if (
-            !dead &&
-            !dino.jumping
-        ) {
-
-            dino.velocity =
-                -JUMP_POWER;
-
-            dino.jumping =
-                true;
-        }
-
-
-        return;
+            true;
     }
-
-
-    /*
-        Long hold.
-    */
-
-    dino.ducking =
-        false;
 }
 
 
 /*
-    Keep ducking while Space
-    remains held.
-*/
-
-function updateSpace() {
-
-    if (!spaceHeld) {
-        return;
-    }
-
-
-    dino.ducking =
-        true;
-}
-
-
-/*
-    Update game
+    Update game.
 */
 
 function update(dt) {
@@ -1846,7 +1769,7 @@ function update(dt) {
 
 
     /*
-        Dino physics
+        Dino physics.
     */
 
     dino.y +=
@@ -1879,11 +1802,14 @@ function update(dt) {
 
         /*
             Keep ducking if Space
-            is still held.
+            is being held.
         */
 
         if (
-            spaceHeld
+            spaceHeld &&
+            performance.now() -
+            spaceStartTime >=
+            DUCK_HOLD_TIME
         ) {
 
             dino.ducking =
@@ -1893,7 +1819,7 @@ function update(dt) {
 
 
     /*
-        Cactuses
+        Cactuses.
     */
 
     for (
@@ -1922,6 +1848,8 @@ function update(dt) {
             dead =
                 true;
 
+            saveHighScore();
+
             return;
         }
 
@@ -1940,7 +1868,8 @@ function update(dt) {
 
 
             /*
-                Update high score immediately.
+                Update high score
+                immediately.
             */
 
             if (
@@ -1955,8 +1884,7 @@ function update(dt) {
 
 
             /*
-                Increase speed every
-                10 obstacles.
+                Increase speed.
             */
 
             if (
@@ -1972,7 +1900,7 @@ function update(dt) {
 
 
     /*
-        Flying dinosaurs
+        Flying dinosaurs.
     */
 
     for (
@@ -2017,6 +1945,8 @@ function update(dt) {
             dead =
                 true;
 
+            saveHighScore();
+
             return;
         }
 
@@ -2034,7 +1964,7 @@ function update(dt) {
 
 
     /*
-        Flying dino spawn
+        Flying dinosaur spawn.
     */
 
     flyingTimer -=
@@ -2051,11 +1981,6 @@ function update(dt) {
 
         if (spawned) {
 
-            /*
-                Flying dinosaurs spawn
-                much less often.
-            */
-
             flyingTimer =
                 9000 +
                 Math.random() * 7000;
@@ -2069,7 +1994,7 @@ function update(dt) {
 
 
     /*
-        Cactus spawn
+        Cactus spawn.
     */
 
     obstacleTimer -=
@@ -2090,7 +2015,7 @@ function update(dt) {
 
 
     /*
-        Clouds
+        Clouds.
     */
 
     for (
@@ -2146,7 +2071,7 @@ function update(dt) {
 
 
 /*
-    Draw game
+    Draw game.
 */
 
 function draw() {
@@ -2160,7 +2085,7 @@ function draw() {
 
 
     /*
-        Background
+        Background.
     */
 
     rect(
@@ -2173,7 +2098,7 @@ function draw() {
 
 
     /*
-        Clouds
+        Clouds.
     */
 
     for (
@@ -2186,7 +2111,7 @@ function draw() {
 
 
     /*
-        Ground
+        Ground.
     */
 
     rect(
@@ -2199,7 +2124,7 @@ function draw() {
 
 
     /*
-        Ground details
+        Ground details.
     */
 
     for (
@@ -2219,7 +2144,7 @@ function draw() {
 
 
     /*
-        Cactuses
+        Cactuses.
     */
 
     for (
@@ -2245,7 +2170,7 @@ function draw() {
 
 
     /*
-        Flying dinosaurs
+        Flying dinosaurs.
     */
 
     for (
@@ -2260,14 +2185,14 @@ function draw() {
 
 
     /*
-        Player
+        Player.
     */
 
     drawDino();
 
 
     /*
-        Score
+        Score.
     */
 
     ctx.font =
@@ -2281,7 +2206,7 @@ function draw() {
 
 
     /*
-        High score
+        High score.
     */
 
     ctx.textAlign =
@@ -2299,7 +2224,7 @@ function draw() {
 
 
     /*
-        Current score
+        Current score.
     */
 
     ctx.textAlign =
@@ -2316,7 +2241,7 @@ function draw() {
 
 
     /*
-        Game over
+        Game over.
     */
 
     if (dead) {
@@ -2372,7 +2297,7 @@ function draw() {
 
 
 /*
-    Restart
+    Restart.
 */
 
 function restart() {
@@ -2435,7 +2360,7 @@ function restart() {
 
 
 /*
-    Keyboard press
+    Keyboard input.
 */
 
 document.addEventListener(
@@ -2455,7 +2380,7 @@ document.addEventListener(
 
 
 /*
-    Keyboard release
+    Keyboard release.
 */
 
 document.addEventListener(
@@ -2475,14 +2400,34 @@ document.addEventListener(
 
 
 /*
-    Mouse and touch.
+    Prevent Space from scrolling
+    the page.
+*/
 
-    Tap the game screen to jump.
+window.addEventListener(
+    "blur",
+    function() {
+
+        spaceHeld =
+            false;
+
+        dino.ducking =
+            false;
+    }
+);
+
+
+/*
+    Mouse/touch support.
+
+    Clicking the game jumps.
 */
 
 canvas.addEventListener(
     "pointerdown",
-    function() {
+    function(event) {
+
+        event.preventDefault();
 
         if (dead) {
 
@@ -2490,14 +2435,24 @@ canvas.addEventListener(
 
         } else {
 
-            jump();
+            if (!dino.jumping) {
+
+                dino.velocity =
+                    -JUMP_POWER;
+
+                dino.jumping =
+                    true;
+
+                dino.ducking =
+                    false;
+            }
         }
     }
 );
 
 
 /*
-    Game loop
+    Game loop.
 */
 
 function gameLoop(time) {
@@ -2528,7 +2483,7 @@ function gameLoop(time) {
 
 
 /*
-    Start
+    Start game.
 */
 
 restart();
@@ -2541,8 +2496,7 @@ requestAnimationFrame(
 
 </body>
 
-</html>
-`);
+</html>`);
 
 
     gameWindow.document.close();
