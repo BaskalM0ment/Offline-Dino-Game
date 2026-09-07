@@ -1,4 +1,4 @@
-const CACHE_NAME = "dino-runner-v16";
+const CACHE_NAME = "dino-runner-v17";
 const FILES = ["/", "/index.html", "/sw.js"];
 
 self.addEventListener("install", event => {
@@ -17,6 +17,14 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
     if (event.request.method !== "GET") return;
+
+    // Always check the network for the service worker itself so a new
+    // cache version can never get stuck behind an old cached sw.js.
+    if (new URL(event.request.url).pathname === "/sw.js") {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
