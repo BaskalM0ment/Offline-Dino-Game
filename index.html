@@ -27,7 +27,7 @@ launchButton.onclick=()=>{
  if(!w){alert("Popup blocked. Allow popups for this site.");return}
  const dark=appearance==="black",bg=dark?"#111":"#fff",fg=dark?"#fff":"#111",muted=dark?"#aaa":"#555",line=dark?"#333":"#ddd";
  const gameHTML=`<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dino Runner</title><style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center}#wrap{width:min(920px,96vw);text-align:center}canvas{display:block;width:100%;height:auto;aspect-ratio:3/1}#help{margin-top:14px;font-size:15px;line-height:1.6;color:${muted}}#help b{color:${fg}.key{border:1px solid currentColor;border-radius:5px;padding:2px 7px;font-weight:bold}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center}#wrap{width:min(920px,96vw);text-align:center}canvas{display:block;width:100%;height:auto;aspect-ratio:3/1}#help{margin-top:14px;font-size:15px;line-height:1.6;color:${muted}}#help b{color:${fg}}.key{border:1px solid currentColor;border-radius:5px;padding:2px 7px;font-weight:bold}
 </style></head><body><div id="wrap"><canvas id="game"></canvas><div id="help"><b>HOW TO PLAY</b><br>Tap <span class="key">SPACE</span> to jump. Hold <span class="key">SPACE</span> to duck. Release <span class="key">SPACE</span> to stand. Avoid the cactuses and flying dinosaurs.</div></div><script>
 "use strict";
 const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
@@ -70,7 +70,7 @@ function drawFlyer(f){ctx.fillStyle=FG;ctx.fillRect(f.x+12,f.y+10,29,13);ctx.fil
 function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);ctx.strokeStyle=LINE;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();drawDino();cactuses.forEach(drawCactus);flyers.forEach(drawFlyer);ctx.fillStyle=FG;ctx.font="bold 18px Arial";ctx.textAlign="right";ctx.fillText("HI "+String(highScore).padStart(5,"0"),W-20,28);ctx.fillText(String(score).padStart(5,"0"),W-20,51);if(gameOver){ctx.textAlign="center";ctx.font="bold 32px Arial";ctx.fillText("GAME OVER",W/2,105);ctx.font="bold 17px Arial";ctx.fillText("Tap SPACE to restart",W/2,135)}}
 function loop(now){const dt=Math.min(40,now-last);last=now;update(dt);draw();requestAnimationFrame(loop)}
 resetDino();draw();requestAnimationFrame(loop);
-</script></body></html>`;
+<\/script></body></html>`;
  w.document.open();w.document.write(gameHTML);w.document.close();w.focus();
 };
 </script>
