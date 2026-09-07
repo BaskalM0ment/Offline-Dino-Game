@@ -27,18 +27,16 @@ launchButton.onclick=()=>{
  if(!w){alert("Popup blocked. Allow popups for this site.");return}
  const dark=appearance==="black",bg=dark?"#111":"#fff",fg=dark?"#fff":"#111",muted=dark?"#aaa":"#555",line=dark?"#333":"#ddd";
  const gameHTML=`<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Dino Runner</title><style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center}#wrap{width:min(920px,96vw);text-align:center}canvas{display:block;width:100%;height:auto;aspect-ratio:3/1}#help{margin-top:14px;font-size:15px;line-height:1.6;color:${muted}}#help b{color:${fg}}.key{border:1px solid currentColor;border-radius:5px;padding:2px 7px;font-weight:bold}
-</style></head><body><div id="wrap"><canvas id="game"></canvas><div id="help"><b>HOW TO PLAY</b><br>Tap <span class="key">SPACE</span> to jump. Hold <span class="key">SPACE</span> to duck. Release <span class="key">SPACE</span> to stand. Avoid the cactuses and flying dinosaurs.</div></div><script>
+html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:${bg};color:${fg};font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center}#wrap{width:min(920px,96vw);text-align:center}canvas{display:block;width:100%;height:auto;aspect-ratio:3/1;background:${bg}}#help{margin-top:14px;font-size:15px;line-height:1.6;color:${muted}}#help b{color:${fg}}.key{border:1px solid currentColor;border-radius:5px;padding:2px 7px;font-weight:bold}
+</style></head><body><div id="wrap"><canvas id="game" width="900" height="300"></canvas><div id="help"><b>HOW TO PLAY</b><br>Tap <span class="key">SPACE</span> to jump. Hold <span class="key">SPACE</span> to duck. Release <span class="key">SPACE</span> to stand. Avoid the cactuses and flying dinosaurs.</div></div><script>
 "use strict";
 const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
 const W=900,H=300,G=250,DPR=Math.min(devicePixelRatio||1,2);canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
 const BG="${bg}",FG="${fg}",LINE="${line}";
-const HSKEY="dinoHighScoreV2";
 let score=0,highScore=0,distance=0,speed=6,gameOver=false,last=performance.now();
-try{highScore=Number(localStorage.getItem(HSKEY))||0}catch(e){highScore=0}
 const dino={x:90,w:54,h:68,duckW:72,duckH:40,y:G-68,vy:0,jumping:false,ducking:false};
 let cactuses=[],flyers=[],cactusTimer=900,flyerTimer=6500,spaceHeld=false,holdTimer=null;
-function saveScore(){if(score>highScore){highScore=score;try{localStorage.setItem(HSKEY,String(highScore))}catch(e){}}}
+function saveScore(){if(score>highScore)highScore=score}
 function resetDino(){dino.w=54;dino.h=68;dino.y=G-dino.h;dino.vy=0;dino.jumping=false;dino.ducking=false}
 function jump(){if(gameOver){restart();return}if(dino.jumping||dino.ducking)return;dino.jumping=true;dino.vy=-13.5;dino.y=G-dino.h}
 function duck(){if(gameOver)return;dino.ducking=true;if(dino.jumping){dino.jumping=false;dino.vy=0}dino.y=G-dino.duckH}
@@ -51,9 +49,9 @@ window.addEventListener("blur",()=>{spaceHeld=false;if(holdTimer){clearTimeout(h
 function spawnCactus(x=W+30){const tall=Math.random()<.3;const h=tall?48:34;const w=tall?22:18;cactuses.push({x,y:G-h,w,h})}
 function spawnFlyer(){const x=W+80;const tooClose=cactuses.some(c=>c.x>x-300&&c.x<x+180);if(tooClose)return false;const y=118+Math.random()*30;flyers.push({x,baseY:y,w:52,h:30,t:Math.random()*6.28});return true}
 function rectsHit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function dinoBox(){return dino.ducking?{x:dino.x+4,y:G-dino.duckH+7,w:dino.duckW-8,h:dino.duckH-8}:{x:dino.x+9,y:dino.y+5,w:dino.w-15,h:dino.h-7}}
+function dinoBox(){return dino.ducking?{x:dino.x+4,y:G-dino.duckH+7,w:dino.duckW-8,h:dino.duckH-8}:{x:dino.x+8,y:dino.y+4,w:dino.w-5,h:dino.h-6}}
 function endGame(){gameOver=true;saveScore()}
-function restart(){score=0;distance=0;speed=6;gameOver=false;cactuses=[];flyers=[];cactusTimer=1000;flyerTimer=6000;resetDino();last=performance.now()}
+function restart(){score=0;distance=0;speed=6;gameOver=false;cactuses=[];flyers=[];cactusTimer=1000;flyerTimer=6000;resetDino()}
 function update(dt){if(gameOver)return;const s=dt/16.6667;distance+=speed*s;score=Math.floor(distance/100);saveScore();speed=Math.min(11,6+score*.025);
  if(dino.ducking){dino.y=G-dino.duckH;dino.vy=0;dino.jumping=false}else if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.68*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;
  cactusTimer-=dt;if(cactusTimer<=0){spawnCactus();cactusTimer=900+Math.random()*650}
