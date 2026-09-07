@@ -40,21 +40,14 @@ body {
     display: block;
     appearance: none;
     -webkit-appearance: none;
-
     border: 2px solid #111111;
     border-radius: 8px;
-
-    background-color: #ffffff;
+    background: #ffffff;
     color: #111111;
-
     font-family: Arial, Helvetica, sans-serif;
     font-weight: 700;
-
     cursor: pointer;
-
-    transition:
-        background-color 0.15s ease,
-        color 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 #launchButton {
@@ -147,20 +140,15 @@ let appearance =
 
 function updateAppearance() {
 
-    if (appearance === "black") {
+    document.body.classList.toggle(
+        "dark",
+        appearance === "black"
+    );
 
-        document.body.classList.add("dark");
-
-        appearanceButton.textContent =
-            "APPEARANCE: BLACK";
-
-    } else {
-
-        document.body.classList.remove("dark");
-
-        appearanceButton.textContent =
-            "APPEARANCE: WHITE";
-    }
+    appearanceButton.textContent =
+        appearance === "black"
+            ? "APPEARANCE: BLACK"
+            : "APPEARANCE: WHITE";
 }
 
 
@@ -168,14 +156,10 @@ appearanceButton.addEventListener(
     "click",
     function () {
 
-        if (appearance === "white") {
-
-            appearance = "black";
-
-        } else {
-
-            appearance = "white";
-        }
+        appearance =
+            appearance === "white"
+                ? "black"
+                : "white";
 
         localStorage.setItem(
             "dinoAppearance",
@@ -213,7 +197,6 @@ launchButton.addEventListener(
         const dark =
             appearance === "black";
 
-
         const background =
             dark ? "#111111" : "#ffffff";
 
@@ -226,10 +209,8 @@ launchButton.addEventListener(
 
         gameWindow.document.open();
 
-        gameWindow.document.write(
-`
+        gameWindow.document.write(`
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -300,7 +281,8 @@ body {
 
     margin-top: 15px;
 
-    color: ${dark ? "#cccccc" : "#555555"};
+    color:
+        ${dark ? "#cccccc" : "#555555"};
 
     font-size: 15px;
 
@@ -313,6 +295,8 @@ body {
 }
 
 .key {
+
+    display: inline-block;
 
     border: 1px solid currentColor;
 
@@ -400,11 +384,14 @@ ctx.setTransform(
    COLORS
 ========================================================= */
 
-const BG = "${background}";
+const BG =
+    "${background}";
 
-const FG = "${foreground}";
+const FG =
+    "${foreground}";
 
-const SECONDARY = "${secondary}";
+const SECONDARY =
+    "${secondary}";
 
 
 /* =========================================================
@@ -417,31 +404,17 @@ let highScore = 0;
 
 
 /*
-   Read the saved high score.
+   Load the saved high score.
 */
 
 try {
 
-    if (
-        window.opener &&
-        !window.opener.closed
-    ) {
-
-        highScore =
-            Number(
-                window.opener.localStorage
-                    .getItem("dinoHighScore")
-            ) || 0;
-
-    } else {
-
-        highScore =
-            Number(
-                localStorage.getItem(
-                    "dinoHighScore"
-                )
-            ) || 0;
-    }
+    highScore =
+        Number(
+            localStorage.getItem(
+                "dinoHighScore"
+            )
+        ) || 0;
 
 } catch (error) {
 
@@ -451,44 +424,42 @@ try {
 
 function saveHighScore() {
 
-    if (score <= highScore) {
-        return;
-    }
+    if (score > highScore) {
 
-    highScore = score;
+        highScore = score;
 
+        try {
 
-    try {
-
-        localStorage.setItem(
-            "dinoHighScore",
-            String(highScore)
-        );
-
-    } catch (error) {
-    }
-
-
-    try {
-
-        if (
-            window.opener &&
-            !window.opener.closed
-        ) {
-
-            window.opener.localStorage.setItem(
+            localStorage.setItem(
                 "dinoHighScore",
                 String(highScore)
             );
+
+        } catch (error) {
         }
 
-    } catch (error) {
+
+        try {
+
+            if (
+                window.opener &&
+                !window.opener.closed
+            ) {
+
+                window.opener.localStorage.setItem(
+                    "dinoHighScore",
+                    String(highScore)
+                );
+            }
+
+        } catch (error) {
+        }
     }
 }
 
 
 /* =========================================================
-   GAME
+   GAME VARIABLES
 ========================================================= */
 
 let gameOver = false;
@@ -509,20 +480,33 @@ let lastTime =
    DINO
 ========================================================= */
 
+/*
+   IMPORTANT:
+
+   The dino always has its FEET at GROUND.
+
+   We never move the standing/ducking dino
+   through the ground.
+
+   Jumping changes the entire dino's
+   vertical position.
+
+   Ducking only changes its height.
+*/
+
 const dino = {
 
     x: 90,
 
-    width: 65,
+    normalWidth: 65,
 
-    height: 75,
+    normalHeight: 75,
 
     duckWidth: 75,
 
     duckHeight: 43,
 
-    y:
-        GROUND - 75,
+    y: GROUND - 75,
 
     velocityY: 0,
 
@@ -536,70 +520,59 @@ const dino = {
    SPACE CONTROL
 ========================================================= */
 
-/*
-   This is deliberately simple.
+let spaceHeld = false;
 
-   Space pressed:
-   Start a timer.
+let spaceTimer = null;
 
-   If released before the timer:
-   JUMP.
-
-   If still held when timer expires:
-   DUCK.
-
-   The important part is that the jump
-   happens on KEYUP for a tap, so a hold
-   never starts a jump.
-*/
-
-let spaceIsDown = false;
-
-let holdTimer = null;
+let spaceStartTime = 0;
 
 const HOLD_TIME = 220;
 
 
-function pressSpace() {
+/*
+   SPACE DOWN
+*/
 
-    if (spaceIsDown) {
+function handleSpaceDown() {
+
+    if (spaceHeld) {
         return;
     }
 
-    spaceIsDown = true;
+    spaceHeld = true;
+
+    spaceStartTime =
+        performance.now();
 
 
     /*
-       Start the duck timer.
+       If the game is over,
+       immediately prepare restart.
+
+       The actual restart happens
+       when Space is released.
     */
 
-    holdTimer =
+    if (gameOver) {
+        return;
+    }
+
+
+    /*
+       After HOLD_TIME the player
+       is considered to be holding Space.
+    */
+
+    spaceTimer =
         setTimeout(
             function () {
 
                 if (
-                    spaceIsDown &&
+                    spaceHeld &&
                     !gameOver
                 ) {
 
-                    /*
-                       Holding Space means duck.
-                    */
-
-                    dino.ducking = true;
-
-                    /*
-                       Ducking cancels
-                       the jump.
-                    */
-
-                    dino.jumping = false;
-
-                    dino.velocityY = 0;
-
-                    dino.y =
-                        GROUND -
-                        dino.duckHeight;
+                    startDucking();
                 }
 
             },
@@ -608,53 +581,132 @@ function pressSpace() {
 }
 
 
-function releaseSpace() {
+/*
+   SPACE UP
+*/
 
-    if (!spaceIsDown) {
+function handleSpaceUp() {
+
+    if (!spaceHeld) {
         return;
     }
 
-    spaceIsDown = false;
+    spaceHeld = false;
 
 
-    if (holdTimer !== null) {
+    if (spaceTimer !== null) {
 
         clearTimeout(
-            holdTimer
+            spaceTimer
         );
 
-        holdTimer = null;
+        spaceTimer = null;
     }
 
 
     /*
-       If the dino was ducking,
-       release Space and stand up.
+       GAME OVER
+
+       A Space tap restarts the game.
+    */
+
+    if (gameOver) {
+
+        restart();
+
+        return;
+    }
+
+
+    /*
+       If the dino is ducking,
+       simply stand back up.
+
+       This does NOT change the
+       ground position.
     */
 
     if (dino.ducking) {
 
-        dino.ducking = false;
-
-        dino.y =
-            GROUND -
-            dino.normalHeight;
+        stopDucking();
 
         return;
     }
 
 
     /*
-       If Space was tapped,
-       jump.
+       Otherwise this was a tap.
+
+       Jump.
     */
 
-    if (!gameOver) {
+    jump();
+}
 
-        jump();
+
+/*
+   START DUCKING
+*/
+
+function startDucking() {
+
+    if (gameOver) {
+        return;
+    }
+
+
+    dino.ducking = true;
+
+
+    /*
+       If airborne, land immediately.
+
+       This keeps the feet exactly
+       on the ground and prevents
+       clipping.
+    */
+
+    if (dino.jumping) {
+
+        dino.jumping = false;
+
+        dino.velocityY = 0;
+
+        dino.y =
+            GROUND -
+            dino.duckHeight;
     }
 }
 
+
+/*
+   STOP DUCKING
+*/
+
+function stopDucking() {
+
+    dino.ducking = false;
+
+
+    /*
+       Restore the correct standing
+       position.
+
+       The feet stay at GROUND.
+    */
+
+    if (!dino.jumping) {
+
+        dino.y =
+            GROUND -
+            dino.normalHeight;
+    }
+}
+
+
+/*
+   JUMP
+*/
 
 function jump() {
 
@@ -671,7 +723,14 @@ function jump() {
     }
 
 
-    dino.ducking = false;
+    /*
+       Never jump while ducking.
+    */
+
+    if (dino.ducking) {
+        return;
+    }
+
 
     dino.jumping = true;
 
@@ -689,7 +748,7 @@ function jump() {
 
 document.addEventListener(
     "keydown",
-    function (event) {
+    function(event) {
 
         if (
             event.code !== "Space"
@@ -697,9 +756,26 @@ document.addEventListener(
             return;
         }
 
+
         event.preventDefault();
 
-        pressSpace();
+
+        /*
+           Ignore browser auto-repeat.
+
+           This is important because holding
+           Space generates repeated keydown
+           events.
+        */
+
+        if (
+            event.repeat
+        ) {
+            return;
+        }
+
+
+        handleSpaceDown();
 
     },
     false
@@ -708,7 +784,7 @@ document.addEventListener(
 
 document.addEventListener(
     "keyup",
-    function (event) {
+    function(event) {
 
         if (
             event.code !== "Space"
@@ -716,30 +792,50 @@ document.addEventListener(
             return;
         }
 
+
         event.preventDefault();
 
-        releaseSpace();
+
+        handleSpaceUp();
 
     },
     false
 );
 
 
+/*
+   Prevent stuck Space when the
+   browser loses focus.
+*/
+
 window.addEventListener(
     "blur",
-    function () {
+    function() {
 
-        spaceIsDown = false;
+        spaceHeld = false;
 
         dino.ducking = false;
 
-        if (holdTimer !== null) {
+
+        if (
+            spaceTimer !== null
+        ) {
 
             clearTimeout(
-                holdTimer
+                spaceTimer
             );
 
-            holdTimer = null;
+            spaceTimer = null;
+        }
+
+
+        if (
+            !dino.jumping
+        ) {
+
+            dino.y =
+                GROUND -
+                dino.normalHeight;
         }
     }
 );
@@ -751,16 +847,29 @@ window.addEventListener(
 
 function drawDino() {
 
-    const x = dino.x;
+    const x =
+        dino.x;
+
+
+    /*
+       Calculate the visual position.
+
+       Ducking starts from the ground,
+       so the bottom always equals GROUND.
+    */
 
     const y =
         dino.ducking
-            ? GROUND - 43
+            ? GROUND - dino.duckHeight
             : dino.y;
 
 
     ctx.fillStyle = FG;
 
+
+    /* -----------------------------------------------------
+       DUCKING DINO
+    ----------------------------------------------------- */
 
     if (dino.ducking) {
 
@@ -770,15 +879,14 @@ function drawDino() {
 
         ctx.fillRect(
             x - 28,
-            y + 17,
+            y + 16,
             20,
             8
         );
 
-
         ctx.fillRect(
             x - 17,
-            y + 25,
+            y + 24,
             12,
             8
         );
@@ -854,13 +962,14 @@ function drawDino() {
             9
         );
 
+
         return;
     }
 
 
-    /*
+    /* -----------------------------------------------------
        NORMAL DINO
-    */
+    ----------------------------------------------------- */
 
     /*
        Tail
@@ -1018,7 +1127,8 @@ function spawnCactus() {
 
     cactuses.push({
 
-        x: WIDTH + 40,
+        x:
+            WIDTH + 40,
 
         width:
             large ? 58 : 38,
@@ -1034,7 +1144,8 @@ function spawnCactus() {
 
 function drawCactus(c) {
 
-    const x = c.x;
+    const x =
+        c.x;
 
     const top =
         GROUND -
@@ -1097,6 +1208,10 @@ function drawCactus(c) {
 
     } else {
 
+        /*
+           Main stem
+        */
+
         ctx.fillRect(
             x + 11,
             top,
@@ -1104,6 +1219,10 @@ function drawCactus(c) {
             c.height
         );
 
+
+        /*
+           Left arm
+        */
 
         ctx.fillRect(
             x,
@@ -1119,6 +1238,10 @@ function drawCactus(c) {
             19
         );
 
+
+        /*
+           Right arm
+        */
 
         ctx.fillRect(
             x + 21,
@@ -1146,16 +1269,12 @@ const flyers = [];
 
 function spawnFlyer() {
 
-    const x =
+    const spawnX =
         WIDTH + 350;
 
 
     /*
-       Never place the flyer near
-       an existing cactus.
-
-       This prevents the unfair
-       cactus + flyer combination.
+       Never spawn over a cactus.
     */
 
     for (
@@ -1164,7 +1283,8 @@ function spawnFlyer() {
 
         if (
             Math.abs(
-                cactus.x - x
+                cactus.x -
+                spawnX
             ) < 300
         ) {
 
@@ -1180,15 +1300,20 @@ function spawnFlyer() {
 
     flyers.push({
 
-        x: x,
+        x:
+            spawnX,
 
-        y: baseY,
+        y:
+            baseY,
 
-        baseY: baseY,
+        baseY:
+            baseY,
 
-        width: 80,
+        width:
+            80,
 
-        height: 44,
+        height:
+            44,
 
         phase:
             Math.random() *
@@ -1200,9 +1325,11 @@ function spawnFlyer() {
 
 function drawFlyer(fly) {
 
-    const x = fly.x;
+    const x =
+        fly.x;
 
-    const y = fly.y;
+    const y =
+        fly.y;
 
 
     ctx.fillStyle = FG;
@@ -1343,16 +1470,27 @@ function drawFlyer(fly) {
 function cactusCollision(c) {
 
     const dinoLeft =
-        dino.x + 7;
+        dino.x + 8;
 
     const dinoRight =
-        dino.ducking
-            ? dino.x + 70
-            : dino.x + 63;
+        dino.x +
+        (
+            dino.ducking
+                ? dino.duckWidth
+                : dino.normalWidth
+        );
+
+
+    /*
+       The top depends on the
+       current body height.
+
+       The bottom is ALWAYS GROUND.
+    */
 
     const dinoTop =
         dino.ducking
-            ? GROUND - 43
+            ? GROUND - dino.duckHeight
             : dino.y + 7;
 
 
@@ -1380,48 +1518,50 @@ function cactusCollision(c) {
 
 function flyerCollision(fly) {
 
-    /*
-       Flyers are deliberately high.
-
-       If the player ducks, the top of
-       the dino stays below the flyer.
-    */
-
     const dinoLeft =
         dino.x + 10;
 
     const dinoRight =
-        dino.x + 65;
+        dino.x +
+        (
+            dino.ducking
+                ? dino.duckWidth
+                : dino.normalWidth
+        );
+
 
     const dinoTop =
         dino.ducking
-            ? GROUND - 43
-            : dino.y + 7;
+            ? GROUND - dino.duckHeight
+            : dino.y;
+
 
     const dinoBottom =
-        dino.ducking
-            ? GROUND
-            : dino.y + 75;
+        GROUND;
 
 
-    const flyerLeft =
+    const flyLeft =
         fly.x + 8;
 
-    const flyerRight =
-        fly.x + fly.width - 8;
+    const flyRight =
+        fly.x +
+        fly.width -
+        8;
 
-    const flyerTop =
+    const flyTop =
         fly.y + 5;
 
-    const flyerBottom =
-        fly.y + fly.height - 5;
+    const flyBottom =
+        fly.y +
+        fly.height -
+        5;
 
 
     return (
-        dinoRight > flyerLeft &&
-        dinoLeft < flyerRight &&
-        dinoTop < flyerBottom &&
-        dinoBottom > flyerTop
+        dinoRight > flyLeft &&
+        dinoLeft < flyRight &&
+        dinoTop < flyBottom &&
+        dinoBottom > flyTop
     );
 }
 
@@ -1439,9 +1579,16 @@ function update(dt) {
 
     /*
        DINO PHYSICS
+
+       Ducking has priority.
     */
 
     if (dino.ducking) {
+
+        /*
+           Feet remain exactly on
+           the ground.
+        */
 
         dino.jumping = false;
 
@@ -1451,16 +1598,26 @@ function update(dt) {
             GROUND -
             dino.duckHeight;
 
-    } else if (dino.jumping) {
+    }
+
+    else if (dino.jumping) {
 
         dino.y +=
             dino.velocityY *
             dt;
 
+
         dino.velocityY +=
             0.68 *
             dt;
 
+
+        /*
+           Landing.
+
+           The dino is placed exactly
+           on the ground.
+        */
 
         if (
             dino.y >=
@@ -1478,27 +1635,42 @@ function update(dt) {
         }
     }
 
+    else {
+
+        /*
+           Standing dino stays
+           exactly on the ground.
+        */
+
+        dino.y =
+            GROUND -
+            dino.normalHeight;
+    }
+
 
     /*
        CACTUSES
     */
 
     for (
-        let i = cactuses.length - 1;
+        let i =
+            cactuses.length - 1;
+
         i >= 0;
+
         i--
     ) {
 
-        const c =
+        const cactus =
             cactuses[i];
 
 
-        c.x -=
+        cactus.x -=
             speed * dt;
 
 
         if (
-            cactusCollision(c)
+            cactusCollision(cactus)
         ) {
 
             endGame();
@@ -1508,8 +1680,8 @@ function update(dt) {
 
 
         if (
-            c.x +
-            c.width <
+            cactus.x +
+            cactus.width <
             -60
         ) {
 
@@ -1522,12 +1694,15 @@ function update(dt) {
 
 
     /*
-       FLYERS
+       FLYING DINOSAURS
     */
 
     for (
-        let i = flyers.length - 1;
+        let i =
+            flyers.length - 1;
+
         i >= 0;
+
         i--
     ) {
 
@@ -1551,7 +1726,8 @@ function update(dt) {
 
 
         /*
-           Keep them high.
+           Keep flying dinosaurs
+           high enough to duck under.
         */
 
         fly.y =
@@ -1605,15 +1781,14 @@ function update(dt) {
 
         cactusTimer =
             850 +
-            Math.random() *
-            500;
+            Math.random() * 500;
     }
 
 
     /*
-       FLYER SPAWN
+       FLYING DINO SPAWN
 
-       Much less frequent.
+       Rare compared with cactuses.
     */
 
     flyerTimer -=
@@ -1629,16 +1804,12 @@ function update(dt) {
 
         flyerTimer =
             7500 +
-            Math.random() *
-            6000;
+            Math.random() * 6000;
     }
 
 
     /*
        SCORE
-
-       Score is based on actual
-       distance traveled.
     */
 
     distance +=
@@ -1664,7 +1835,7 @@ function update(dt) {
 
 
     /*
-       Gradually increase speed.
+       SPEED
     */
 
     speed =
@@ -1714,20 +1885,36 @@ function restart() {
     flyers.length = 0;
 
 
+    dino.jumping = false;
+
+    dino.ducking = false;
+
+    dino.velocityY = 0;
+
     dino.y =
         GROUND -
         dino.normalHeight;
 
-    dino.velocityY = 0;
 
-    dino.jumping = false;
+    /*
+       Clear any leftover Space timer.
+    */
 
-    dino.ducking = false;
+    if (
+        spaceTimer !== null
+    ) {
+
+        clearTimeout(
+            spaceTimer
+        );
+
+        spaceTimer = null;
+    }
 }
 
 
 /* =========================================================
-   DRAW
+   DRAW GROUND
 ========================================================= */
 
 function drawGround() {
@@ -1761,6 +1948,10 @@ function drawGround() {
     }
 }
 
+
+/* =========================================================
+   DRAW SCORE
+========================================================= */
 
 function drawScore() {
 
@@ -1796,6 +1987,10 @@ function drawScore() {
     );
 }
 
+
+/* =========================================================
+   GAME OVER SCREEN
+========================================================= */
 
 function drawGameOver() {
 
@@ -1840,12 +2035,17 @@ function drawGameOver() {
 
     ctx.fillText(
         "SCORE " +
-        String(score).padStart(5, "0"),
+        String(score)
+            .padStart(5, "0"),
         WIDTH / 2,
         188
     );
 }
 
+
+/* =========================================================
+   DRAW
+========================================================= */
 
 function draw() {
 
@@ -1891,30 +2091,55 @@ function draw() {
 
 
 /* =========================================================
+   GAME LOOP
+========================================================= */
+
+function gameLoop(time) {
+
+    let dt =
+        (time - lastTime) /
+        16.67;
+
+
+    lastTime =
+        time;
+
+
+    if (
+        !Number.isFinite(dt) ||
+        dt <= 0
+    ) {
+
+        dt = 1;
+    }
+
+
+    dt =
+        Math.min(
+            dt,
+            2
+        );
+
+
+    update(dt);
+
+    draw();
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
+}
+
+
+/* =========================================================
    START
 ========================================================= */
 
 restart();
 
 requestAnimationFrame(
-    function loop(time) {
-
-        const dt =
-            Math.min(
-                2,
-                (time - lastTime) / 16.67
-            );
-
-        lastTime = time;
-
-        update(dt);
-
-        draw();
-
-        requestAnimationFrame(
-            loop
-        );
-    }
+    gameLoop
 );
 
 <\/script>
@@ -1922,14 +2147,14 @@ requestAnimationFrame(
 </body>
 
 </html>
-`
-        );
+`);
 
         gameWindow.document.close();
 
         gameWindow.focus();
     }
 );
+
 </script>
 
 </body>
