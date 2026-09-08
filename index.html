@@ -38,16 +38,33 @@ function spaceDown(){if(spaceHeld)return;spaceHeld=true;if(gameOver)return;holdT
 function spaceUp(){if(!spaceHeld)return;spaceHeld=false;if(holdTimer){clearTimeout(holdTimer);holdTimer=null}if(gameOver){restart();return}if(dino.ducking){stand();return}jump()}
 document.addEventListener("keydown",e=>{if(e.code!=="Space")return;e.preventDefault();if(!e.repeat)spaceDown()});document.addEventListener("keyup",e=>{if(e.code!=="Space")return;e.preventDefault();spaceUp()});
 window.addEventListener("blur",()=>{spaceHeld=false;if(holdTimer){clearTimeout(holdTimer);holdTimer=null}if(dino.ducking)stand()});
-function spawnCactus(x=W+35){const tall=Math.random()<.28,h=tall?52:36,w=tall?24:20;cactuses.push({x,y:G-h,w,h,tall})}
-function flyerSafe(){const spawnX=W+90;return !cactuses.some(c=>c.x>spawnX-520&&c.x<spawnX+260)}
-function spawnFlyer(){if(!flyerSafe())return false;const y=105+Math.random()*28;flyers.push({x:W+90,baseY:y,w:58,h:34,t:Math.random()*6.28});return true}
+
+// Obstacles are deliberately separated: while a flyer is active, no cactus may spawn.
+// This prevents a flyer from ever appearing above a newly-created cactus.
+function spawnCactus(x=W+35){
+ if(flyers.some(f=>f.x<W+180))return false;
+ const tall=Math.random()<.28,h=tall?52:36,w=tall?24:20;
+ cactuses.push({x,y:G-h,w,h,tall});
+ return true;
+}
+function flyerSafe(){
+ const spawnX=W+90;
+ if(cactuses.length>0)return false;
+ return !flyers.some(f=>Math.abs(f.x-spawnX)<700);
+}
+function spawnFlyer(){
+ if(!flyerSafe())return false;
+ const y=105+Math.random()*28;
+ flyers.push({x:W+90,baseY:y,w:58,h:34,t:Math.random()*6.28});
+ return true;
+}
 function rectsHit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 function dinoBox(){return dino.ducking?{x:dino.x+5,y:G-dino.duckH+8,w:dino.duckW-8,h:dino.duckH-10}:{x:dino.x+10,y:dino.y+6,w:dino.w-10,h:dino.h-8}}
 function endGame(){gameOver=true;saveScore()}
 function restart(){score=0;distance=0;speed=6;gameOver=false;cactuses=[];flyers=[];cactusTimer=1050;flyerTimer=7000;resetDino();last=performance.now()}
 function update(dt){if(gameOver)return;const s=dt/16.6667;distance+=speed*s;score=Math.floor(distance/100);saveScore();speed=Math.min(11,6+score*.025);
  if(dino.ducking){dino.y=G-dino.duckH;dino.vy=0;dino.jumping=false}else if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.68*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;
- cactusTimer-=dt;if(cactusTimer<=0){spawnCactus();cactusTimer=1000+Math.random()*750}
+ cactusTimer-=dt;if(cactusTimer<=0){const spawned=spawnCactus();cactusTimer=spawned?(1000+Math.random()*750):500}
  flyerTimer-=dt;if(flyerTimer<=0){flyerTimer=spawnFlyer()?8500+Math.random()*7000:1200}
  const box=dinoBox();
  for(let i=cactuses.length-1;i>=0;i--){const c=cactuses[i];c.x-=speed*s;if(rectsHit(box,{x:c.x+3,y:c.y+2,w:c.w-6,h:c.h-2})){endGame();return}if(c.x+c.w<-50)cactuses.splice(i,1)}
@@ -60,9 +77,7 @@ function drawDino(){const x=dino.x,y=dino.ducking?G-dino.duckH:dino.y;ctx.fillSt
 }
 function drawCactus(c){const x=c.x,y=c.y,w=c.w,h=c.h;ctx.fillStyle=FG;px(x,y,w,h);const arm=Math.max(11,h*.36);px(x-10,y+arm,10,7);px(x-9,y+arm-10,8,17);px(x+w,y+h*.55,10,7);px(x+w+2,y+h*.55-10,8,17);px(x+4,y+5,4,h-10,DETAIL);px(x+w-6,y+8,3,h-13,DETAIL);px(x-5,y+arm+2,5,2,DETAIL);px(x+w+3,y+h*.55+2,5,2,DETAIL)}
 function drawFlyer(f){const x=f.x,y=f.y;ctx.fillStyle=FG;px(x+14,y+12,30,14);px(x+37,y+6,13,18);px(x+48,y+13,10,8);px(x+4,y+5,18,8);px(x+7,y+27,22,6);px(x+23,y+23,7,11);px(x+27,y+4,9,5,DETAIL);px(x+38,y+10,8,4,DETAIL);px(x+46,y+14,4,4,BG);px(x+52,y+16,4,3,DETAIL);px(x+17,y+7,5,4,DETAIL);px(x+11,y+28,7,3,DETAIL)}
-function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);ctx.strokeStyle=LINE;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();
- // subtle ground texture
- ctx.strokeStyle=LINE;ctx.lineWidth=1;for(let x=20;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,G+7);ctx.lineTo(x+18,G+7);ctx.stroke()}
+function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);ctx.strokeStyle=LINE;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();ctx.strokeStyle=LINE;ctx.lineWidth=1;for(let x=20;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,G+7);ctx.lineTo(x+18,G+7);ctx.stroke()}
  drawDino();cactuses.forEach(drawCactus);flyers.forEach(drawFlyer);ctx.fillStyle=FG;ctx.font="bold 18px Arial";ctx.textAlign="right";ctx.fillText("HI "+String(highScore).padStart(5,"0"),W-20,28);ctx.fillText(String(score).padStart(5,"0"),W-20,51);if(gameOver){ctx.textAlign="center";ctx.font="bold 32px Arial";ctx.fillText("GAME OVER",W/2,105);ctx.font="bold 17px Arial";ctx.fillText("Tap SPACE to restart",W/2,135)}}
 function loop(now){const dt=Math.min(40,now-last);last=now;update(dt);draw();requestAnimationFrame(loop)}
 resetDino();draw();requestAnimationFrame(loop);
