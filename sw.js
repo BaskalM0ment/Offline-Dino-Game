@@ -1,4 +1,4 @@
-const CACHE_NAME = "dino-runner-v29";
+const CACHE_NAME = "dino-runner-v30";
 const FILES = ["/", "/index.html", "/sw.js"];
 self.addEventListener("install", event => {event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(FILES)));self.skipWaiting();});
 self.addEventListener("activate", event => {event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))));self.clients.claim();});
