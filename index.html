@@ -33,47 +33,21 @@ let cactuses=[],cactusTimer=850,runFrame=0;
 function saveScore(){if(score>highScore)highScore=score}
 function updateScoreboard(){hiScoreEl.textContent="HI "+String(highScore).padStart(5,"0");currentScoreEl.textContent=String(score).padStart(5,"0")}
 function resetDino(){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}
-function jump(){if(gameOver){restart();return}if(dino.jumping)return;dino.jumping=true;dino.vy=-13.7;dino.y=G-dino.h}
+function jump(){if(gameOver){restart();return}if(dino.jumping)return;dino.jumping=true;dino.vy=-11.8;dino.y=G-dino.h}
 document.addEventListener("keydown",e=>{if(e.code!=="Space")return;e.preventDefault();if(!e.repeat)jump()});
-function spawnCactus(x=W+35){const tall=Math.random()<.34,h=tall?43:36,w=tall?16:14;cactuses.push({x,y:G-h,w,h,tall})}
+function spawnCactus(x=W+35){const heights=[30,36,43,50,57],h=heights[Math.floor(Math.random()*heights.length)],w=h>=50?17:h>=43?16:h>=36?14:13;cactuses.push({x,y:G-h,w,h})}
 function rectsHit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 function dinoBox(){return{x:dino.x+5,y:dino.y+4,w:dino.w-7,h:dino.h-5}}
 function endGame(){gameOver=true;saveScore();updateScoreboard();gameOverEl.classList.add("show")}
 function restart(){score=0;distance=0;speed=6;gameOver=false;cactuses=[];cactusTimer=1050;resetDino();updateScoreboard();gameOverEl.classList.remove("show");last=performance.now()}
 function update(dt){if(gameOver)return;const s=dt/16.6667;distance+=speed*s;score=Math.floor(distance/100);saveScore();updateScoreboard();speed=Math.min(11,6+score*.025);runFrame=(runFrame+dt*.012)%2;
-if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.68*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;
+if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.72*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;
 cactusTimer-=dt;if(cactusTimer<=0){spawnCactus();cactusTimer=1000+Math.random()*750}
 const box=dinoBox();
 for(let i=cactuses.length-1;i>=0;i--){const c=cactuses[i];c.x-=speed*s;if(rectsHit(box,{x:c.x+2,y:c.y+1,w:c.w-4,h:c.h-1})){endGame();return}if(c.x+c.w<-50)cactuses.splice(i,1)}}
 function px(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
-function drawDino(){const C=colors(),x=Math.round(dino.x),y=Math.round(dino.y),f=C.fg,b=C.bg;
-// Tail and back, shaped to match the supplied reference.
-px(x,y+27,5,9,f);px(x+4,y+31,5,9,f);px(x+8,y+34,6,8,f);px(x+13,y+32,6,12,f);px(x+18,y+29,7,17,f);
-// Main body and chest.
-px(x+22,y+24,18,27,f);px(x+18,y+35,22,15,f);px(x+26,y+20,13,10,f);
-// Neck and classic blocky head.
-px(x+34,y+12,8,26,f);px(x+38,y+5,19,25,f);px(x+42,y+3,14,5,f);px(x+55,y+8,5,16,f);px(x+49,y+22,11,8,f);
-// Eye and mouth gap.
-px(x+45,y+9,4,4,b);px(x+51,y+23,9,3,b);
-// Tiny arm.
-px(x+35,y+34,7,4,f);px(x+40,y+37,5,4,f);
-// Belly cutouts that create the same narrow waist as the reference.
-px(x+18,y+43,6,5,b);px(x+35,y+44,5,5,b);
-// Two-frame running legs; while jumping both legs use a neutral pose.
-const frame=dino.jumping?0:Math.floor(runFrame);
-if(frame===0){px(x+22,y+48,7,9,f);px(x+20,y+55,10,4,f);px(x+35,y+47,7,8,f);px(x+37,y+54,10,4,f)}
-else{px(x+23,y+47,7,8,f);px(x+25,y+54,10,4,f);px(x+34,y+49,7,9,f);px(x+31,y+55,10,4,f)}
-}
-function drawCactus(c){const C=colors(),x=Math.round(c.x),y=Math.round(c.y),f=C.fg,h=c.h,w=c.w;
-// Slim central trunk and rounded/stepped crown like the supplied cactus picture.
-px(x+4,y,w-8,h,f);px(x+5,y-2,w-10,3,f);px(x+3,y+2,w-6,5,f);
-// Left arm.
-const ly=y+Math.round(h*.30);px(x-5,ly+5,9,5,f);px(x-6,ly-5,5,15,f);px(x-5,ly-7,4,4,f);
-// Right arm.
-const ry=y+Math.round(h*.43);px(x+w-4,ry+5,9,5,f);px(x+w+1,ry-6,5,16,f);px(x+w+1,ry-8,4,4,f);
-// Slight foot flare at ground level, visible in the reference.
-px(x+2,y+h-3,w-4,3,f)
-}
+function drawDino(){const C=colors(),x=Math.round(dino.x),y=Math.round(dino.y),f=C.fg,b=C.bg;px(x,y+27,5,9,f);px(x+4,y+31,5,9,f);px(x+8,y+34,6,8,f);px(x+13,y+32,6,12,f);px(x+18,y+29,7,17,f);px(x+22,y+24,18,27,f);px(x+18,y+35,22,15,f);px(x+26,y+20,13,10,f);px(x+34,y+12,8,26,f);px(x+38,y+5,19,25,f);px(x+42,y+3,14,5,f);px(x+55,y+8,5,16,f);px(x+49,y+22,11,8,f);px(x+45,y+9,4,4,b);px(x+51,y+23,9,3,b);px(x+35,y+34,7,4,f);px(x+40,y+37,5,4,f);px(x+18,y+43,6,5,b);px(x+35,y+44,5,5,b);const frame=dino.jumping?0:Math.floor(runFrame);if(frame===0){px(x+22,y+48,7,9,f);px(x+20,y+55,10,4,f);px(x+35,y+47,7,8,f);px(x+37,y+54,10,4,f)}else{px(x+23,y+47,7,8,f);px(x+25,y+54,10,4,f);px(x+34,y+49,7,9,f);px(x+31,y+55,10,4,f)}}
+function drawCactus(c){const C=colors(),x=Math.round(c.x),y=Math.round(c.y),f=C.fg,h=c.h,w=c.w;px(x+4,y,w-8,h,f);px(x+5,y-2,w-10,3,f);px(x+3,y+2,w-6,5,f);const ly=y+Math.round(h*.30);px(x-5,ly+5,9,5,f);px(x-6,ly-5,5,15,f);px(x-5,ly-7,4,4,f);const ry=y+Math.round(h*.43);px(x+w-4,ry+5,9,5,f);px(x+w+1,ry-6,5,16,f);px(x+w+1,ry-8,4,4,f);px(x+2,y+h-3,w-4,3,f)}
 function draw(){const C=colors();ctx.clearRect(0,0,W,H);ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle=C.line;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();ctx.strokeStyle=C.line;ctx.lineWidth=1;for(let x=20;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,G+7);ctx.lineTo(x+18,G+7);ctx.stroke()};drawDino();cactuses.forEach(drawCactus)}
 function loop(now){const dt=Math.min(40,now-last);last=now;update(dt);draw();requestAnimationFrame(loop)}
 resetDino();updateScoreboard();draw();requestAnimationFrame(loop);
