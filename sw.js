@@ -1,4 +1,4 @@
-const CACHE_NAME = "dino-runner-v27";
+const CACHE_NAME = "dino-runner-v28";
 const FILES = ["/", "/index.html", "/sw.js"];
 
 self.addEventListener("install", event => {
