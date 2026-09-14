@@ -26,61 +26,54 @@ const moonIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 15.5A
 const sunIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.25A4.75 4.75 0 1 0 12 16.75 4.75 4.75 0 0 0 12 7.25ZM12 1.5a1 1 0 0 1 1 1V4a1 1 0 1 1-2 0V2.5a1 1 0 0 1 1-1Zm0 17.5a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V20a1 1 0 0 1 1-1ZM4.22 3.51a1 1 0 0 1 1.41 0l1.06 1.06A1 1 0 0 1 5.28 5.98L4.22 4.92a1 1 0 0 1 0-1.41Zm12.37 12.37a1 1 0 0 1 1.41 0l1.06 1.06a1 1 0 0 1-1.41 1.41l-1.06-1.06a1 1 0 0 1 0-1.41ZM1.5 12a1 1 0 0 1 1-1H4a1 1 0 1 1 0 2H2.5a1 1 0 0 1-1-1Zm17.5 0a1 1 0 0 1 1-1h1.5a1 1 0 1 1 0 2H20a1 1 0 0 1-1-1ZM4.22 19.49a1 1 0 0 1 0-1.41l1.06-1.06a1 1 0 1 1 1.41 1.41l-1.06 1.06a1 1 0 0 1-1.41 0ZM16.59 7.02a1 1 0 0 1 0-1.41l1.06-1.06a1 1 0 1 1 1.41 1.41L18 7.02a1 1 0 0 1-1.41 0Z"/></svg>';
 function theme(){const dark=appearance==="black";document.body.classList.toggle("dark",dark);appearanceButton.innerHTML=dark?sunIcon:moonIcon;appearanceButton.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode");appearanceButton.title=dark?"Light mode":"Dark mode"}
 appearanceButton.onclick=()=>{appearance=appearance==="white"?"black":"white";localStorage.setItem("dinoAppearance",appearance);theme();draw()};theme();
-function colors(){return appearance==="black"?{bg:"#111",fg:"#fff",line:"#444"}:{bg:"#fff",fg:"#111",line:"#ddd"}}
+function colors(){return appearance==="black"?{bg:"#111",fg:"#f1f1f1",line:"#444"}:{bg:"#fff",fg:"#535353",line:"#ddd"}}
 let score=0,highScore=0,distance=0,speed=6,gameOver=false,last=performance.now();
-const dino={x:90,w:58,h:70,y:G-70,vy:0,jumping:false};
-let cactuses=[],cactusTimer=850;
+const dino={x:90,w:53,h:58,y:G-58,vy:0,jumping:false};
+let cactuses=[],cactusTimer=850,runFrame=0;
 function saveScore(){if(score>highScore)highScore=score}
 function updateScoreboard(){hiScoreEl.textContent="HI "+String(highScore).padStart(5,"0");currentScoreEl.textContent=String(score).padStart(5,"0")}
 function resetDino(){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}
 function jump(){if(gameOver){restart();return}if(dino.jumping)return;dino.jumping=true;dino.vy=-13.7;dino.y=G-dino.h}
 document.addEventListener("keydown",e=>{if(e.code!=="Space")return;e.preventDefault();if(!e.repeat)jump()});
-function spawnCactus(x=W+35){const tall=Math.random()<.32,h=tall?54:40,w=tall?22:20;cactuses.push({x,y:G-h,w,h,tall,variant:Math.floor(Math.random()*3)})}
+function spawnCactus(x=W+35){const tall=Math.random()<.34,h=tall?43:36,w=tall?16:14;cactuses.push({x,y:G-h,w,h,tall})}
 function rectsHit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function dinoBox(){return{x:dino.x+10,y:dino.y+6,w:dino.w-10,h:dino.h-8}}
+function dinoBox(){return{x:dino.x+5,y:dino.y+4,w:dino.w-7,h:dino.h-5}}
 function endGame(){gameOver=true;saveScore();updateScoreboard();gameOverEl.classList.add("show")}
 function restart(){score=0;distance=0;speed=6;gameOver=false;cactuses=[];cactusTimer=1050;resetDino();updateScoreboard();gameOverEl.classList.remove("show");last=performance.now()}
-function update(dt){if(gameOver)return;const s=dt/16.6667;distance+=speed*s;score=Math.floor(distance/100);saveScore();updateScoreboard();speed=Math.min(11,6+score*.025);
+function update(dt){if(gameOver)return;const s=dt/16.6667;distance+=speed*s;score=Math.floor(distance/100);saveScore();updateScoreboard();speed=Math.min(11,6+score*.025);runFrame=(runFrame+dt*.012)%2;
 if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.68*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;
 cactusTimer-=dt;if(cactusTimer<=0){spawnCactus();cactusTimer=1000+Math.random()*750}
 const box=dinoBox();
-for(let i=cactuses.length-1;i>=0;i--){const c=cactuses[i];c.x-=speed*s;if(rectsHit(box,{x:c.x+2,y:c.y+2,w:c.w-4,h:c.h-2})){endGame();return}if(c.x+c.w<-50)cactuses.splice(i,1)}}
+for(let i=cactuses.length-1;i>=0;i--){const c=cactuses[i];c.x-=speed*s;if(rectsHit(box,{x:c.x+2,y:c.y+1,w:c.w-4,h:c.h-1})){endGame();return}if(c.x+c.w<-50)cactuses.splice(i,1)}}
 function px(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function drawDino(){const C=colors(),x=Math.round(dino.x),y=Math.round(dino.y),f=C.fg,b=C.bg;
-// tail + back
-px(x-17,y+29,8,5,f);px(x-12,y+26,8,7,f);px(x-7,y+23,9,10,f);px(x-2,y+21,10,14,f);
-// torso / belly
-px(x+4,y+20,28,40,f);px(x+1,y+31,35,26,f);px(x+8,y+55,24,8,f);
-// neck into head
-px(x+28,y+14,12,34,f);px(x+35,y+7,24,35,f);px(x+42,y+5,20,27,f);px(x+58,y+10,8,22,f);px(x+63,y+15,10,15,f);
-// jaw/snout shaping
-px(x+51,y+30,18,7,f);px(x+60,y+27,10,6,f);px(x+67,y+22,8,10,f);
-// mouth cut + eye
-px(x+61,y+29,11,3,b);px(x+48,y+13,5,5,b);px(x+49,y+13,2,2,f);
-// little neck / face gaps for the classic stepped silhouette
-px(x+36,y+34,8,6,b);px(x+40,y+40,7,5,b);
-// arm
-px(x+31,y+43,6,5,f);px(x+36,y+46,7,4,f);px(x+40,y+48,4,3,f);
-// hips
-px(x+13,y+58,18,5,f);
-// legs and feet
-px(x+13,y+60,8,10,f);px(x+10,y+68,11,4,f);px(x+28,y+60,8,8,f);px(x+29,y+66,11,5,f);
-// leg separation and small pixel notches
-px(x+21,y+61,6,7,b);px(x+4,y+56,6,4,b);px(x+29,y+54,5,4,b)}
-function drawCactus(c){const C=colors(),x=Math.round(c.x),y=Math.round(c.y),f=C.fg,b=C.bg,w=c.w,h=c.h;
-// stepped crown
-px(x+4,y,w-8,3,f);px(x+2,y+3,w-4,4,f);px(x,y+7,w,h-7,f);
-// central rib cutouts
-px(x+5,y+10,3,h-16,b);px(x+w-7,y+12,2,h-19,b);
-// left arm
-const la=y+Math.round(h*.38);px(x-8,la,8,7,f);px(x-10,la-11,6,18,f);px(x-9,la-14,5,5,f);px(x-5,la+1,5,3,b);
-// right arm
-const ra=y+Math.round(h*.55);px(x+w,ra,9,7,f);px(x+w+5,ra-13,6,20,f);px(x+w+6,ra-16,5,5,f);px(x+w+1,ra+1,5,3,b);
-// vertical highlights/notches matching pixel-art cactus ribs
-px(x+Math.floor(w/2)-1,y+6,2,h-10,b);px(x+2,y+h-7,4,3,b);px(x+w-6,y+h-10,3,3,b);
-// occasional extra tiny side branch detail
-if(c.variant===1){px(x-5,y+Math.round(h*.68),5,5,f);px(x-7,y+Math.round(h*.62),4,10,f)}
-if(c.variant===2&&c.tall){px(x+w,y+Math.round(h*.28),6,5,f);px(x+w+3,y+Math.round(h*.20),4,10,f)}}
+// Tail and back, shaped to match the supplied reference.
+px(x,y+27,5,9,f);px(x+4,y+31,5,9,f);px(x+8,y+34,6,8,f);px(x+13,y+32,6,12,f);px(x+18,y+29,7,17,f);
+// Main body and chest.
+px(x+22,y+24,18,27,f);px(x+18,y+35,22,15,f);px(x+26,y+20,13,10,f);
+// Neck and classic blocky head.
+px(x+34,y+12,8,26,f);px(x+38,y+5,19,25,f);px(x+42,y+3,14,5,f);px(x+55,y+8,5,16,f);px(x+49,y+22,11,8,f);
+// Eye and mouth gap.
+px(x+45,y+9,4,4,b);px(x+51,y+23,9,3,b);
+// Tiny arm.
+px(x+35,y+34,7,4,f);px(x+40,y+37,5,4,f);
+// Belly cutouts that create the same narrow waist as the reference.
+px(x+18,y+43,6,5,b);px(x+35,y+44,5,5,b);
+// Two-frame running legs; while jumping both legs use a neutral pose.
+const frame=dino.jumping?0:Math.floor(runFrame);
+if(frame===0){px(x+22,y+48,7,9,f);px(x+20,y+55,10,4,f);px(x+35,y+47,7,8,f);px(x+37,y+54,10,4,f)}
+else{px(x+23,y+47,7,8,f);px(x+25,y+54,10,4,f);px(x+34,y+49,7,9,f);px(x+31,y+55,10,4,f)}
+}
+function drawCactus(c){const C=colors(),x=Math.round(c.x),y=Math.round(c.y),f=C.fg,h=c.h,w=c.w;
+// Slim central trunk and rounded/stepped crown like the supplied cactus picture.
+px(x+4,y,w-8,h,f);px(x+5,y-2,w-10,3,f);px(x+3,y+2,w-6,5,f);
+// Left arm.
+const ly=y+Math.round(h*.30);px(x-5,ly+5,9,5,f);px(x-6,ly-5,5,15,f);px(x-5,ly-7,4,4,f);
+// Right arm.
+const ry=y+Math.round(h*.43);px(x+w-4,ry+5,9,5,f);px(x+w+1,ry-6,5,16,f);px(x+w+1,ry-8,4,4,f);
+// Slight foot flare at ground level, visible in the reference.
+px(x+2,y+h-3,w-4,3,f)
+}
 function draw(){const C=colors();ctx.clearRect(0,0,W,H);ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle=C.line;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();ctx.strokeStyle=C.line;ctx.lineWidth=1;for(let x=20;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,G+7);ctx.lineTo(x+18,G+7);ctx.stroke()};drawDino();cactuses.forEach(drawCactus)}
 function loop(now){const dt=Math.min(40,now-last);last=now;update(dt);draw();requestAnimationFrame(loop)}
 resetDino();updateScoreboard();draw();requestAnimationFrame(loop);
