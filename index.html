@@ -27,10 +27,10 @@ const sunIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.25A4.7
 function theme(){const dark=appearance==="black";document.body.classList.toggle("dark",dark);appearanceButton.innerHTML=dark?sunIcon:moonIcon;appearanceButton.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode");appearanceButton.title=dark?"Light mode":"Dark mode"}
 appearanceButton.onclick=()=>{appearance=appearance==="white"?"black":"white";localStorage.setItem("dinoAppearance",appearance);theme();draw()};theme();
 function colors(){return appearance==="black"?{bg:"#111",fg:"#f1f1f1",line:"#444"}:{bg:"#fff",fg:"#535353",line:"#ddd"}}
-let score=0,highScore=0,distance=0,speed=6,gameOver=false,last=performance.now();
+let score=0,highScore=Math.max(0,parseInt(localStorage.getItem("dinoHighScore")||"0",10)||0),distance=0,speed=6,gameOver=false,last=performance.now();
 const dino={x:90,w:53,h:58,y:G-58,vy:0,jumping:false};
 let cactuses=[],cactusTimer=850,runFrame=0;
-function saveScore(){if(score>highScore)highScore=score}
+function saveScore(){if(score>highScore){highScore=score;localStorage.setItem("dinoHighScore",String(highScore))}}
 function updateScoreboard(){hiScoreEl.textContent="HI "+String(highScore).padStart(5,"0");currentScoreEl.textContent=String(score).padStart(5,"0")}
 function resetDino(){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}
 function jump(){if(gameOver){restart();return}if(dino.jumping)return;dino.jumping=true;dino.vy=-11.8;dino.y=G-dino.h}
