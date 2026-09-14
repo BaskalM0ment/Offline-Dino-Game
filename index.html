@@ -14,7 +14,7 @@
 <div id="scoreboard"><span id="hiscore">HI 00000</span><span id="currentscore">00000</span></div>
 <div id="gameover"><div id="gameover-title">GAME OVER</div><div id="gameover-subtitle">Tap SPACE to restart</div></div>
 <canvas id="game" width="900" height="300"></canvas>
-<div id="help">Tap <span class="key">SPACE</span> to jump · hold <span class="key">SPACE</span> to duck · release to stand</div>
+<div id="help">Press <span class="key">SPACE</span> to jump</div>
 </div>
 <script>
 "use strict";
@@ -28,37 +28,27 @@ function theme(){const dark=appearance==="black";document.body.classList.toggle(
 appearanceButton.onclick=()=>{appearance=appearance==="white"?"black":"white";localStorage.setItem("dinoAppearance",appearance);theme();draw()};theme();
 function colors(){return appearance==="black"?{bg:"#111",fg:"#fff",line:"#444"}:{bg:"#fff",fg:"#111",line:"#ddd"}}
 let score=0,highScore=0,distance=0,speed=6,gameOver=false,last=performance.now();
-const dino={x:90,w:58,h:70,duckW:76,duckH:42,y:G-70,vy:0,jumping:false,ducking:false};
-let cactuses=[],flyers=[],cactusTimer=850,flyerTimer=7200,spaceHeld=false,holdTimer=null;
+const dino={x:90,w:58,h:70,y:G-70,vy:0,jumping:false};
+let cactuses=[],cactusTimer=850;
 function saveScore(){if(score>highScore)highScore=score}
 function updateScoreboard(){hiScoreEl.textContent="HI "+String(highScore).padStart(5,"0");currentScoreEl.textContent=String(score).padStart(5,"0")}
-function resetDino(){dino.w=58;dino.h=70;dino.y=G-dino.h;dino.vy=0;dino.jumping=false;dino.ducking=false}
-function jump(){if(gameOver){restart();return}if(dino.jumping||dino.ducking)return;dino.jumping=true;dino.vy=-13.7;dino.y=G-dino.h}
-function duck(){if(gameOver)return;dino.ducking=true;if(dino.jumping){dino.jumping=false;dino.vy=0}dino.y=G-dino.duckH}
-function stand(){dino.ducking=false;if(!dino.jumping)dino.y=G-dino.h}
-function spaceDown(){if(spaceHeld)return;spaceHeld=true;if(gameOver)return;holdTimer=setTimeout(()=>{holdTimer=null;if(spaceHeld&&!gameOver)duck()},220)}
-function spaceUp(){if(!spaceHeld)return;spaceHeld=false;if(holdTimer){clearTimeout(holdTimer);holdTimer=null}if(gameOver){restart();return}if(dino.ducking){stand();return}jump()}
-document.addEventListener("keydown",e=>{if(e.code!=="Space")return;e.preventDefault();if(!e.repeat)spaceDown()});document.addEventListener("keyup",e=>{if(e.code!=="Space")return;e.preventDefault();spaceUp()});
-window.addEventListener("blur",()=>{spaceHeld=false;if(holdTimer){clearTimeout(holdTimer);holdTimer=null}if(dino.ducking)stand()});
-function spawnCactus(x=W+35){if(flyers.some(f=>f.x<W+180))return false;const tall=Math.random()<.28,h=tall?52:36,w=tall?24:20;cactuses.push({x,y:G-h,w,h,tall});return true}
-function flyerSafe(){const spawnX=W+90;if(cactuses.length>0)return false;return !flyers.some(f=>Math.abs(f.x-spawnX)<700)}
-function spawnFlyer(){if(!flyerSafe())return false;const y=105+Math.random()*28;flyers.push({x:W+90,baseY:y,w:58,h:34,t:Math.random()*6.28});return true}
+function resetDino(){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}
+function jump(){if(gameOver){restart();return}if(dino.jumping)return;dino.jumping=true;dino.vy=-13.7;dino.y=G-dino.h}
+document.addEventListener("keydown",e=>{if(e.code!=="Space")return;e.preventDefault();if(!e.repeat)jump()});
+function spawnCactus(x=W+35){const tall=Math.random()<.28,h=tall?52:36,w=tall?24:20;cactuses.push({x,y:G-h,w,h,tall})}
 function rectsHit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function dinoBox(){return dino.ducking?{x:dino.x+5,y:G-dino.duckH+8,w:dino.duckW-8,h:dino.duckH-10}:{x:dino.x+10,y:dino.y+6,w:dino.w-10,h:dino.h-8}}
+function dinoBox(){return{x:dino.x+10,y:dino.y+6,w:dino.w-10,h:dino.h-8}}
 function endGame(){gameOver=true;saveScore();updateScoreboard();gameOverEl.classList.add("show")}
-function restart(){score=0;distance=0;speed=6;gameOver=false;cactuses=[];flyers=[];cactusTimer=1050;flyerTimer=7000;resetDino();updateScoreboard();gameOverEl.classList.remove("show");last=performance.now()}
+function restart(){score=0;distance=0;speed=6;gameOver=false;cactuses=[];cactusTimer=1050;resetDino();updateScoreboard();gameOverEl.classList.remove("show");last=performance.now()}
 function update(dt){if(gameOver)return;const s=dt/16.6667;distance+=speed*s;score=Math.floor(distance/100);saveScore();updateScoreboard();speed=Math.min(11,6+score*.025);
-if(dino.ducking){dino.y=G-dino.duckH;dino.vy=0;dino.jumping=false}else if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.68*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;
-cactusTimer-=dt;if(cactusTimer<=0){const spawned=spawnCactus();cactusTimer=spawned?(1000+Math.random()*750):500}
-flyerTimer-=dt;if(flyerTimer<=0){flyerTimer=spawnFlyer()?8500+Math.random()*7000:1200}
+if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.68*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;
+cactusTimer-=dt;if(cactusTimer<=0){spawnCactus();cactusTimer=1000+Math.random()*750}
 const box=dinoBox();
-for(let i=cactuses.length-1;i>=0;i--){const c=cactuses[i];c.x-=speed*s;if(rectsHit(box,{x:c.x+3,y:c.y+2,w:c.w-6,h:c.h-2})){endGame();return}if(c.x+c.w<-50)cactuses.splice(i,1)}
-for(let i=flyers.length-1;i>=0;i--){const f=flyers[i];f.x-=speed*s;f.t+=.055*s;f.y=f.baseY+Math.sin(f.t)*8;if(rectsHit(box,{x:f.x+7,y:f.y+6,w:f.w-13,h:f.h-11})){endGame();return}if(f.x+f.w<-50)flyers.splice(i,1)}}
+for(let i=cactuses.length-1;i>=0;i--){const c=cactuses[i];c.x-=speed*s;if(rectsHit(box,{x:c.x+3,y:c.y+2,w:c.w-6,h:c.h-2})){endGame();return}if(c.x+c.w<-50)cactuses.splice(i,1)}}
 function px(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
-function drawDino(){const C=colors(),x=dino.x,y=dino.ducking?G-dino.duckH:dino.y;if(dino.ducking){px(x-25,y+20,22,6,C.fg);px(x-10,y+13,48,29,C.fg);px(x+34,y+4,31,28,C.fg);px(x+61,y+14,19,11,C.fg);px(x+10,y+40,8,5,C.fg);px(x+39,y+40,8,5,C.fg);px(x+29,y+8,9,5,C.bg);px(x+49,y+5,7,5,C.bg);px(x+52,y+11,5,5,C.bg);px(x+65,y+15,3,3,C.bg);px(x+68,y+23,6,3,C.fg);return}px(x-17,y+27,20,7,C.fg);px(x-8,y+35,11,8,C.fg);px(x+4,y+23,38,44,C.fg);px(x+34,y+8,31,44,C.fg);px(x+59,y+19,15,13,C.fg);px(x+14,y+64,9,8,C.fg);px(x+38,y+64,9,8,C.fg);px(x+8,y+20,9,7,C.bg);px(x+18,y+25,8,6,C.bg);px(x+39,y+11,9,5,C.bg);px(x+50,y+18,7,4,C.bg);px(x+51,y+14,5,5,C.bg);px(x+63,y+22,4,3,C.bg);px(x+68,y+26,5,3,C.fg);px(x+26,y+48,5,9,C.bg);px(x+4,y+67,5,4,C.bg);px(x+39,y+67,5,4,C.bg)}
+function drawDino(){const C=colors(),x=dino.x,y=dino.y;px(x-17,y+27,20,7,C.fg);px(x-8,y+35,11,8,C.fg);px(x+4,y+23,38,44,C.fg);px(x+34,y+8,31,44,C.fg);px(x+59,y+19,15,13,C.fg);px(x+14,y+64,9,8,C.fg);px(x+38,y+64,9,8,C.fg);px(x+8,y+20,9,7,C.bg);px(x+18,y+25,8,6,C.bg);px(x+39,y+11,9,5,C.bg);px(x+50,y+18,7,4,C.bg);px(x+51,y+14,5,5,C.bg);px(x+63,y+22,4,3,C.bg);px(x+68,y+26,5,3,C.fg);px(x+26,y+48,5,9,C.bg);px(x+4,y+67,5,4,C.bg);px(x+39,y+67,5,4,C.bg)}
 function drawCactus(c){const C=colors(),x=c.x,y=c.y,w=c.w,h=c.h;px(x,y,w,h,C.fg);const arm=Math.max(11,h*.36);px(x-10,y+arm,10,7,C.fg);px(x-9,y+arm-10,8,17,C.fg);px(x+w,y+h*.55,10,7,C.fg);px(x+w+2,y+h*.55-10,8,17,C.fg);px(x+4,y+5,4,h-10,C.bg);px(x+w-6,y+8,3,h-13,C.bg);px(x-5,y+arm+2,5,2,C.bg);px(x+w+3,y+h*.55+2,5,2,C.bg)}
-function drawFlyer(f){const C=colors(),x=f.x,y=f.y;px(x+14,y+12,30,14,C.fg);px(x+37,y+6,13,18,C.fg);px(x+48,y+13,10,8,C.fg);px(x+4,y+5,18,8,C.fg);px(x+7,y+27,22,6,C.fg);px(x+23,y+23,7,11,C.fg);px(x+27,y+4,9,5,C.bg);px(x+38,y+10,8,4,C.bg);px(x+46,y+14,4,4,C.bg);px(x+52,y+16,4,3,C.fg);px(x+17,y+7,5,4,C.bg);px(x+11,y+28,7,3,C.bg)}
-function draw(){const C=colors();ctx.clearRect(0,0,W,H);ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle=C.line;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();ctx.strokeStyle=C.line;ctx.lineWidth=1;for(let x=20;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,G+7);ctx.lineTo(x+18,G+7);ctx.stroke()};drawDino();cactuses.forEach(drawCactus);flyers.forEach(drawFlyer)}
+function draw(){const C=colors();ctx.clearRect(0,0,W,H);ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle=C.line;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();ctx.strokeStyle=C.line;ctx.lineWidth=1;for(let x=20;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,G+7);ctx.lineTo(x+18,G+7);ctx.stroke()};drawDino();cactuses.forEach(drawCactus)}
 function loop(now){const dt=Math.min(40,now-last);last=now;update(dt);draw();requestAnimationFrame(loop)}
 resetDino();updateScoreboard();draw();requestAnimationFrame(loop);
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
