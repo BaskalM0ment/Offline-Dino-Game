@@ -9,7 +9,7 @@
 "use strict";
 const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");const W=900,H=300,G=250,DPR=Math.min(devicePixelRatio||1,2);canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);ctx.imageSmoothingEnabled=false;
 let appearance=localStorage.getItem("dinoAppearance")||"white";const appearanceButton=document.getElementById("appearance"),hiScoreEl=document.getElementById("hiscore"),currentScoreEl=document.getElementById("currentscore"),gameOverEl=document.getElementById("gameover");
-const moonIcon='<svg viewBox="0 0 24 24"><path d="M20.7 15.5A8.5 8.5 0 0 1 8.5 3.3 9 9 0 1 0 20.7 15.5Z"/></svg>',sunIcon='<svg viewBox="0 0 24 24"><path d="M12 7.25A4.75 4.75 0 1 0 12 16.75 4.75 4.75 0 0 0 12 7.25ZM12 1.5a1 1 0 0 1 1 1V4a1 1 0 1 1-2 0V2.5a1 1 0 0 1 1-1Zm0 17.5a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V20a1 1 0 0 1 1-1ZM1.5 12a1 1 0 0 1 1-1H4a1 1 0 1 1 0 2H2.5a1 1 0 0 1-1-1Zm17.5 0a1 1 0 0 1 1-1h1.5a1 1 0 1 1 0 2H20a1 1 0 0 1-1-1Z"/></svg>';
+const moonIcon='<svg viewBox="0 0 24 24"><path d="M20.7 15.5A8.5 8.5 0 0 1 8.5 3.3 9 9 0 1 0 20.7 15.5Z"/></svg>',sunIcon='<svg viewBox="0 0 24 24"><path d="M12 7.25A4.75 4.75 0 1 0 12 16.75 4.75 4.75 0 0 0 12 7.25ZM12 1.5a1 1 0 0 1 1 1V4a1 1 0 1 1-2 0V2.5a1 1 0 0 1 1-1Zm0 17.5a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V20a1 1 0 0 1-1-1ZM1.5 12a1 1 0 0 1 1-1H4a1 1 0 1 1 0 2H2.5a1 1 0 0 1-1-1Zm17.5 0a1 1 0 0 1 1-1h1.5a1 1 0 1 1 0 2H20a1 1 0 0 1-1-1Z"/></svg>';
 function theme(){const dark=appearance==="black";document.body.classList.toggle("dark",dark);appearanceButton.innerHTML=dark?sunIcon:moonIcon}appearanceButton.onclick=()=>{appearance=appearance==="white"?"black":"white";localStorage.setItem("dinoAppearance",appearance);theme();draw()};theme();function colors(){return appearance==="black"?{bg:"#111",fg:"#f1f1f1",line:"#444"}:{bg:"#fff",fg:"#535353",line:"#ddd"}}
 const HIGH_SCORE_KEY="offlineDinoHighScoreV2";localStorage.removeItem("dinoHighScore");let score=0,highScore=Math.max(0,parseInt(localStorage.getItem(HIGH_SCORE_KEY)||"0",10)||0),distance=0,speed=6,gameOver=false,last=performance.now();const dino={x:90,w:50,h:52,y:G-52,vy:0,jumping:false};let cactuses=[],cactusTimer=850,runFrame=0;
 function saveScore(){if(score>highScore){highScore=score;localStorage.setItem(HIGH_SCORE_KEY,String(highScore))}}function updateScoreboard(){hiScoreEl.textContent="HI "+String(highScore).padStart(5,"0");currentScoreEl.textContent=String(score).padStart(5,"0")}function resetDino(){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}function jump(){if(gameOver){restart();return}if(dino.jumping)return;dino.jumping=true;dino.vy=-11.8;dino.y=G-dino.h}document.addEventListener("keydown",e=>{if(e.code!=="Space")return;e.preventDefault();if(!e.repeat)jump()});
@@ -17,15 +17,19 @@ function spawnCactus(x=W+35){const heights=[30,36,43,50,57],h=heights[Math.floor
 function update(dt){if(gameOver)return;const s=dt/16.6667;distance+=speed*s;score=Math.floor(distance/100);saveScore();updateScoreboard();speed=Math.min(11,6+score*.025);runFrame=(runFrame+dt*.012)%2;if(dino.jumping){dino.y+=dino.vy*s;dino.vy+=.72*s;if(dino.y>=G-dino.h){dino.y=G-dino.h;dino.vy=0;dino.jumping=false}}else dino.y=G-dino.h;cactusTimer-=dt;if(cactusTimer<=0){spawnCactus();cactusTimer=1000+Math.random()*750}const box=dinoBox();for(let i=cactuses.length-1;i>=0;i--){const c=cactuses[i];c.x-=speed*s;if(rectsHit(box,{x:c.x+2,y:c.y+1,w:c.w-4,h:c.h-1})){endGame();return}if(c.x+c.w<-50)cactuses.splice(i,1)}}
 function px(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function drawDino(){const C=colors(),x=Math.round(dino.x),y=Math.round(dino.y),f=C.fg,b=C.bg;
-// Reference-matched compact pixel T-Rex silhouette.
-px(x+27,y+1,19,4,f);px(x+24,y+5,25,5,f);px(x+24,y+10,25,5,f);px(x+24,y+15,25,5,f);px(x+24,y+20,20,4,f);px(x+22,y+20,5,8,f);px(x+19,y+24,6,9,f);px(x+16,y+28,7,9,f);px(x+12,y+31,8,10,f);px(x+8,y+34,8,10,f);px(x+4,y+32,7,9,f);px(x,y+27,5,10,f);px(x+2,y+36,8,8,f);px(x+7,y+40,20,8,f);px(x+17,y+36,12,12,f);px(x+24,y+27,8,14,f);
-// Eye and mouth cutouts.
+// Clean Chrome-style head and neck.
+px(x+27,y+1,19,4,f);px(x+24,y+5,25,5,f);px(x+24,y+10,25,5,f);px(x+24,y+15,25,5,f);px(x+24,y+20,20,4,f);px(x+22,y+20,5,8,f);px(x+19,y+24,6,9,f);px(x+16,y+28,7,9,f);
+// Body.
+px(x+13,y+31,16,15,f);px(x+17,y+36,12,12,f);px(x+24,y+27,8,14,f);
+// Tail: raised, stepped and kept completely above the legs.
+px(x-5,y+25,5,7,f);px(x-2,y+29,5,8,f);px(x+2,y+33,5,8,f);px(x+6,y+36,6,8,f);px(x+10,y+38,7,7,f);px(x+14,y+39,5,6,f);
+// Eye and mouth.
 px(x+31,y+7,3,3,b);px(x+37,y+18,12,3,b);
-// Small arm like the reference.
+// Small arm.
 px(x+27,y+29,8,3,f);px(x+33,y+31,3,5,f);
-// Belly/leg separation.
-px(x+22,y+42,5,5,b);
-const frame=dino.jumping?0:Math.floor(runFrame);if(frame===0){px(x+12,y+46,6,6,f);px(x+10,y+50,9,3,f);px(x+24,y+45,6,7,f);px(x+25,y+50,9,3,f)}else{px(x+13,y+45,6,7,f);px(x+14,y+50,9,3,f);px(x+23,y+46,6,6,f);px(x+21,y+50,9,3,f)}}
+// Clean underside so the tail/body never visually merges with the feet.
+px(x+10,y+45,10,3,b);px(x+22,y+42,5,5,b);
+const frame=dino.jumping?0:Math.floor(runFrame);if(frame===0){px(x+13,y+45,5,6,f);px(x+11,y+50,8,3,f);px(x+24,y+45,5,6,f);px(x+25,y+50,8,3,f)}else{px(x+14,y+45,5,6,f);px(x+15,y+50,8,3,f);px(x+23,y+45,5,6,f);px(x+21,y+50,8,3,f)}}
 function drawCactus(c){const C=colors(),x=Math.round(c.x),y=Math.round(c.y),f=C.fg,h=c.h,w=c.w;px(x+4,y,w-8,h,f);px(x+5,y-2,w-10,3,f);px(x+3,y+2,w-6,5,f);const ly=y+Math.round(h*.30);px(x-5,ly+5,9,5,f);px(x-6,ly-5,5,15,f);px(x-5,ly-7,4,4,f);const ry=y+Math.round(h*.43);px(x+w-4,ry+5,9,5,f);px(x+w+1,ry-6,5,16,f);px(x+w+1,ry-8,4,4,f);px(x+2,y+h-3,w-4,3,f)}
 function draw(){const C=colors();ctx.clearRect(0,0,W,H);ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle=C.line;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,G+.5);ctx.lineTo(W,G+.5);ctx.stroke();ctx.strokeStyle=C.line;ctx.lineWidth=1;for(let x=20;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,G+7);ctx.lineTo(x+18,G+7);ctx.stroke()}drawDino();cactuses.forEach(drawCactus)}function loop(now){const dt=Math.min(40,now-last);last=now;update(dt);draw();requestAnimationFrame(loop)}resetDino();updateScoreboard();draw();requestAnimationFrame(loop);if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script></body></html>
